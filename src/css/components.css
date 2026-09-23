@@ -3902,6 +3902,7 @@
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+  transform: translateZ(0);
 }
 
 .cd-shelf-stage.is-dragging {
@@ -3958,7 +3959,9 @@
   perspective: 1000px;
   transform-style: preserve-3d;
   margin-left: -62px;
-  transition: margin-right 0.35s cubic-bezier(0.18, 0.9, 0.26, 1.15), z-index 0s;
+  transition: margin-right 0.3s cubic-bezier(0.18, 0.9, 0.26, 1.15), z-index 0s;
+  content-visibility: auto;
+  contain-intrinsic-size: 148px 230px;
 }
 
 .shelf-cd-item:first-child {
@@ -3981,19 +3984,18 @@
   /* Supported horizontally on shelf in resting state */
   transform: rotateX(54deg) translateY(0) scale(0.92);
   filter: brightness(0.86);
-  box-shadow: -10px 16px 28px rgba(0, 0, 0, 0.8), 0 2px 5px rgba(0, 0, 0, 0.5);
+  box-shadow: -8px 14px 22px rgba(0, 0, 0, 0.75);
   border-radius: 4px;
-  transition: transform 0.38s cubic-bezier(0.18, 0.9, 0.26, 1.15), 
-              filter 0.38s ease, 
-              box-shadow 0.38s ease;
-  will-change: transform;
+  transition: transform 0.35s cubic-bezier(0.18, 0.9, 0.26, 1.15), 
+              filter 0.35s ease, 
+              box-shadow 0.35s ease;
 }
 
 /* Playing State in resting position: STAYS HORIZONTAL (does NOT get stuck vertical) */
 .shelf-cd-item.is-playing .shelf-cd-case-3d {
   transform: rotateX(54deg) translateY(0) scale(0.94);
   filter: brightness(1.02);
-  box-shadow: -10px 18px 32px rgba(0, 0, 0, 0.85), 0 0 18px rgba(99, 102, 241, 0.45);
+  box-shadow: -10px 18px 28px rgba(0, 0, 0, 0.8), 0 0 16px rgba(99, 102, 241, 0.4);
 }
 
 /* Hover: Stands Up Completely Vertical - FULL COVER VISIBLE, ZERO CLIPPING */
@@ -4002,6 +4004,7 @@
   transform: rotateX(0deg) translateY(-8px) translateZ(50px) scale(1.04);
   filter: brightness(1.08);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.95), 0 0 22px rgba(99, 102, 241, 0.35);
+  will-change: transform;
 }
 
 .shelf-cd-case {

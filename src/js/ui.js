@@ -35,6 +35,7 @@ class UIController {
     this.showView('home');
     this.updateVolumeSlider(Player.volume);
     this.updateShuffleButtons(Queue.isShuffle);
+    this.checkGoogleOnboarding();
   }
 
   // Format seconds to mm:ss
@@ -90,6 +91,72 @@ class UIController {
 
   getUserBio() {
     return Config.getBio() || 'Melómano en BluxWave.';
+  }
+
+  checkGoogleOnboarding() {
+    // Si ya está autenticado, no mostrar nada
+    if (Auth.isAuthenticated()) return;
+
+    // Verificar si ya se mostró / descartó anteriormente
+    const done = Config.get('google_onboarding_done');
+    if (done) return;
+
+    // Mostrar modal con un pequeño retraso tras la carga inicial
+    setTimeout(() => {
+      if (!Auth.isAuthenticated()) {
+        this.openGoogleOnboardingModal();
+      }
+    }, 800);
+  }
+
+  openGoogleOnboardingModal() {
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalContent = document.getElementById('modal-content');
+    if (!modalBackdrop || !modalContent) return;
+
+    modalContent.innerHTML = `
+      <div style="text-align: center; padding: 16px 8px 10px 8px;">
+        <div style="width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 50%; background: rgba(99, 102, 241, 0.12); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99, 102, 241, 0.25);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+          </svg>
+        </div>
+        <h2 class="modal-title" style="margin-bottom: 8px; font-size: 20px;">¡Bienvenido a BluxWave!</h2>
+        <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 24px; max-width: 380px; margin-left: auto; margin-right: auto;">
+          Inicia sesión con tu cuenta de Google para respaldar tus carpetas, guardar tu colección de discos y sincronizar tu música en cualquier dispositivo automáticamente.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn btn-primary" id="onboarding-login-google-btn" style="padding: 12px 20px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+            </svg>
+            Entrar con Google
+          </button>
+          <button class="btn btn-secondary" id="onboarding-dismiss-btn" style="padding: 10px 16px; font-size: 13px; color: var(--text-muted);">
+            Continuar como invitado
+          </button>
+        </div>
+      </div>
+    `;
+
+    modalBackdrop.classList.add('open');
+
+    document.getElementById('onboarding-login-google-btn')?.addEventListener('click', () => {
+      Config.set('google_onboarding_done', true);
+      this.closeModal();
+      Auth.login();
+    });
+
+    document.getElementById('onboarding-dismiss-btn')?.addEventListener('click', () => {
+      Config.set('google_onboarding_done', true);
+      this.closeModal();
+    });
   }
 
   getUserMusicStats() {
@@ -578,6 +645,59 @@ class UIController {
       });
     }
 
+    // Global Context Menu listener for ANY song / track / CD / queue element
+    document.addEventListener('contextmenu', (e) => {
+      const trackElem = e.target.closest('[data-track], [data-track-id], [data-cd-id], .shelf-cd-item, .song-card, .compact-cd-card, .song-row, .queue-item, .user-queue-item, .context-queue-item');
+      if (trackElem) {
+        let track = null;
+        if (trackElem.dataset.track) {
+          try {
+            track = JSON.parse(trackElem.dataset.track);
+          } catch (err) {}
+        }
+        if (!track && trackElem.dataset.cdId) {
+          const cd = CDCollection.getById(trackElem.dataset.cdId);
+          if (cd) {
+            track = {
+              id: cd.id,
+              title: cd.trackTitle || cd.title,
+              artist: cd.artist,
+              thumbnail: cd.thumbnail,
+              duration: cd.duration
+            };
+          }
+        }
+        if (!track && trackElem.dataset.trackId) {
+          const trackId = trackElem.dataset.trackId;
+          const cd = CDCollection.getById(trackId);
+          if (cd) {
+            track = {
+              id: cd.id,
+              title: cd.trackTitle || cd.title,
+              artist: cd.artist,
+              thumbnail: cd.thumbnail,
+              duration: cd.duration
+            };
+          } else if (Player.currentTrack && String(Player.currentTrack.id) === String(trackId)) {
+            track = Player.currentTrack;
+          }
+        }
+        if (!track && trackElem.classList.contains('user-queue-item')) {
+          const idx = parseInt(trackElem.dataset.userIdx, 10);
+          const uQueue = Queue.getUserQueue ? Queue.getUserQueue() : [];
+          if (!isNaN(idx) && uQueue[idx]) {
+            track = uQueue[idx];
+          }
+        }
+        if (track) {
+          e.preventDefault();
+          e.stopPropagation();
+          const playlistId = trackElem.dataset.playlistId || this.activePlaylistId || null;
+          this.showContextMenu(e, track, playlistId);
+        }
+      }
+    });
+
     // Global Context Menu dismiss
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#context-menu')) {
@@ -744,7 +864,7 @@ class UIController {
         ` : `
           <div class="cd-shelf-stage">
             <div class="cd-shelf-grid">
-              ${collectedCDs.map(cd => this.renderShelfCDItemHTML(cd)).join('')}
+              ${collectedCDs.slice(0, 36).map(cd => this.renderShelfCDItemHTML(cd)).join('')}
             </div>
           </div>
         `}
@@ -1077,11 +1197,12 @@ class UIController {
     if (playlist.songs.length === 0) {
       html += `<div style="padding: 40px 0; color: var(--text-muted);">Esta carpeta está vacía. Busca canciones y pulsa en "Añadir a una carpeta".</div>`;
     } else if (this.playlistViewMode === 'cds') {
+      const initialChunk = playlist.songs.slice(0, 36);
       html += `
         <div class="cd-shelf-container" style="margin-top: 10px;">
           <div class="cd-shelf-stage">
             <div class="cd-shelf-grid">
-              ${playlist.songs.map(track => this.renderShelfCDItemHTML(track, playlistId)).join('')}
+              ${initialChunk.map(track => this.renderShelfCDItemHTML(track, playlistId)).join('')}
             </div>
           </div>
         </div>
@@ -2747,9 +2868,16 @@ class UIController {
     const isCurrent = Player.currentTrack && Player.currentTrack.id === cd.id;
     const cleanArtistName = this.cleanArtist(cd.artist);
     const removeTitle = playlistId ? 'Quitar de esta carpeta' : 'Quitar CD de la colección';
+    const trackData = {
+      id: cd.id,
+      title: cd.trackTitle || cd.title,
+      artist: cd.artist,
+      thumbnail: cd.thumbnail,
+      duration: cd.duration
+    };
 
     return `
-      <div class="shelf-cd-item ${isCurrent ? 'is-playing' : ''}" data-cd-id="${cd.id}" data-track-id="${cd.id}" title="${this.escapeHTML(cd.trackTitle || cd.title)} - ${this.escapeHTML(cleanArtistName)}">
+      <div class="shelf-cd-item ${isCurrent ? 'is-playing' : ''}" data-cd-id="${cd.id}" data-track-id="${cd.id}" data-track='${JSON.stringify(trackData).replace(/'/g, "&apos;")}' ${playlistId ? `data-playlist-id="${playlistId}"` : ''} title="${this.escapeHTML(cd.trackTitle || cd.title)} - ${this.escapeHTML(cleanArtistName)}">
         <div class="shelf-cd-case-3d">
           <div class="shelf-cd-case">
             <div class="cd-case-spine">
@@ -2776,6 +2904,72 @@ class UIController {
         </div>
       </div>
     `;
+  }
+
+  bindShelfItemListeners(container, list, playlistId, getHasDragged) {
+    container.querySelectorAll('.shelf-cd-item:not([data-shelf-bound])').forEach(item => {
+      item.setAttribute('data-shelf-bound', 'true');
+
+      // Click to play
+      item.addEventListener('click', (e) => {
+        if (getHasDragged && getHasDragged()) return;
+        if (e.target.closest('.shelf-cd-remove-btn')) return;
+
+        const cdId = item.dataset.cdId;
+        const foundIndex = list.findIndex(c => String(c.id) === String(cdId));
+        if (foundIndex !== -1) {
+          const playable = list.map(c => ({
+            id: c.id,
+            title: c.trackTitle || c.title,
+            artist: c.artist,
+            thumbnail: c.thumbnail,
+            duration: c.duration
+          }));
+          Queue.setQueue(playable, foundIndex);
+        }
+      });
+
+      // Right click context menu on shelf CD item
+      item.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const cdId = item.dataset.cdId;
+        const found = list.find(c => String(c.id) === String(cdId));
+        if (found) {
+          const track = {
+            id: found.id,
+            title: found.trackTitle || found.title,
+            artist: found.artist,
+            thumbnail: found.thumbnail,
+            duration: found.duration
+          };
+          this.showContextMenu(e, track, playlistId);
+        }
+      });
+    });
+
+    // Remove CD from shelf button
+    container.querySelectorAll('.shelf-cd-remove-btn:not([data-remove-bound])').forEach(btn => {
+      btn.setAttribute('data-remove-bound', 'true');
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cdId = btn.dataset.removeId;
+        const fromPlId = btn.dataset.playlistId || playlistId;
+        if (cdId) {
+          if (fromPlId) {
+            Playlists.removeSong(fromPlId, cdId);
+            this.showToast('Tema retirado de la carpeta');
+            this.renderPlaylistView(fromPlId);
+          } else {
+            CDCollection.removeCD(cdId);
+            this.showToast('CD retirado de tu colección');
+            this.updateFavoriteButton();
+            if (this.currentView === 'library') this.renderLibraryView();
+            if (this.currentView === 'profile') this.renderProfileView();
+          }
+        }
+      });
+    });
   }
 
   attachShelfEventListeners(container, cdList = null, playlistId = null) {
@@ -2851,48 +3045,28 @@ class UIController {
       }, { passive: true });
     }
 
-    // Play CD item on click (only if user did not drag)
-    container.querySelectorAll('.shelf-cd-item').forEach(item => {
-      item.addEventListener('click', (e) => {
-        if (hasDragged) return;
-        if (e.target.closest('.shelf-cd-remove-btn')) return;
+    // Bind item click and context menu listeners
+    this.bindShelfItemListeners(container, list, playlistId, () => hasDragged);
 
-        const cdId = item.dataset.cdId;
-        const foundIndex = list.findIndex(c => c.id === cdId);
-        if (foundIndex !== -1) {
-          const playable = list.map(c => ({
-            id: c.id,
-            title: c.trackTitle || c.title,
-            artist: c.artist,
-            thumbnail: c.thumbnail,
-            duration: c.duration
-          }));
-          Queue.setQueue(playable, foundIndex);
-        }
-      });
-    });
-
-    // Remove CD from shelf button
-    container.querySelectorAll('.shelf-cd-remove-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const cdId = btn.dataset.removeId;
-        const fromPlId = btn.dataset.playlistId || playlistId;
-        if (cdId) {
-          if (fromPlId) {
-            Playlists.removeSong(fromPlId, cdId);
-            this.showToast('Tema retirado de la carpeta');
-            this.renderPlaylistView(fromPlId);
-          } else {
-            CDCollection.removeCD(cdId);
-            this.showToast('CD retirado de tu colección');
-            this.updateFavoriteButton();
-            if (this.currentView === 'library') this.renderLibraryView();
-            if (this.currentView === 'profile') this.renderProfileView();
+    // Infinite scroll / progressive append if there are more than 36 items
+    const grid = container.querySelector('.cd-shelf-grid');
+    if (shelfStage && grid && list.length > 36) {
+      let renderedCount = container.querySelectorAll('.shelf-cd-item').length;
+      const onScroll = () => {
+        if (renderedCount >= list.length) return;
+        if (shelfStage.scrollLeft + shelfStage.clientWidth >= shelfStage.scrollWidth - 600) {
+          const nextChunk = list.slice(renderedCount, renderedCount + 30);
+          renderedCount += nextChunk.length;
+          const temp = document.createElement('div');
+          temp.innerHTML = nextChunk.map(t => this.renderShelfCDItemHTML(t, playlistId)).join('');
+          while (temp.firstChild) {
+            grid.appendChild(temp.firstChild);
           }
+          this.bindShelfItemListeners(grid, list, playlistId, () => hasDragged);
         }
-      });
-    });
+      };
+      shelfStage.addEventListener('scroll', onScroll, { passive: true });
+    }
   }
 
   attachProfileEventListeners(container, stats) {
