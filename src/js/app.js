@@ -6,6 +6,7 @@ import { UI } from './ui.js';
 import { Player } from './player.js';
 import { Queue } from './queue.js';
 import { Auth } from './auth.js';
+import { CloudSync } from './sync.js';
 import { setupShortcuts } from './shortcuts.js';
 import { CURATED_TRACKS } from './youtube.js';
 
@@ -17,9 +18,11 @@ window.addEventListener('DOMContentLoaded', () => {
   window.bluxPlayer = Player;
   window.bluxQueue = Queue;
   window.bluxAuth = Auth;
+  window.bluxCloudSync = CloudSync;
 
-  // Initialize Auth, UI & Shortcuts
+  // Initialize Auth, CloudSync, UI & Shortcuts
   Auth.init();
+  CloudSync.init();
   UI.init();
   setupShortcuts();
 

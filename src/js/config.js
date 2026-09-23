@@ -4,8 +4,11 @@
 
 import { Storage } from './storage.js';
 
+// Clave de YouTube Data API predeterminada compartida (para que tus amigos no necesiten ingresarla)
+export const DEFAULT_YOUTUBE_API_KEY = '';
+
 const DEFAULT_SETTINGS = {
-  youtubeApiKey: '',
+  youtubeApiKey: DEFAULT_YOUTUBE_API_KEY,
   googleClientId: '677549544444-fog23hne9vjaoecrtih42pe28muj505m.apps.googleusercontent.com',
   volume: 80,
   autoplay: true,
@@ -20,6 +23,11 @@ const DEFAULT_SETTINGS = {
 class ConfigManager {
   constructor() {
     this.settings = { ...DEFAULT_SETTINGS, ...(Storage.get('settings') || {}) };
+
+    // Si hay una API Key compartida en el código y el usuario no tiene una en su almacenamiento
+    if (!this.settings.youtubeApiKey && DEFAULT_YOUTUBE_API_KEY) {
+      this.settings.youtubeApiKey = DEFAULT_YOUTUBE_API_KEY;
+    }
 
     // Fallback to Vite environment variable if localStorage has no key
     if (!this.settings.youtubeApiKey && import.meta.env?.VITE_YOUTUBE_API_KEY) {
@@ -37,7 +45,7 @@ class ConfigManager {
   }
 
   getApiKey() {
-    return this.settings.youtubeApiKey || '';
+    return this.settings.youtubeApiKey || DEFAULT_YOUTUBE_API_KEY || '';
   }
 
   setApiKey(key) {

@@ -124,6 +124,14 @@ class PlaylistManager {
 
   save() {
     Storage.set('playlists', this.playlists);
+    if (window.bluxCloudSync?.scheduleUpload) {
+      window.bluxCloudSync.scheduleUpload();
+    }
+  }
+
+  reload() {
+    this.playlists = Storage.get('playlists') || [];
+    this.notify();
   }
 
   subscribe(callback) {

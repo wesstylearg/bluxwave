@@ -1297,24 +1297,25 @@ class UIController {
           </p>
         </div>
 
-        <!-- Google Account & YouTube Sync -->
+        <!-- Google Account & Cloud Sync -->
         <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px;">
-          <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Cuenta de YouTube (Google OAuth 2.0)</h3>
+          <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Cuenta de Google (Sincronización en la Nube)</h3>
           <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5;">
-            Conecta tu cuenta para sincronizar e importar tus carpetas personales directamente a BluxWave.
+            Conecta tu cuenta para sincronizar automáticamente tus carpetas, colección de CDs y preferencias en tu Google Drive personal (AppData).
           </p>
 
           ${isAuth && user ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg-surface-elevated); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg-surface-elevated); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
               <div style="display: flex; align-items: center; gap: 12px;">
                 <img src="${user.avatar || 'https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png'}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-subtle);" alt="">
                 <div>
                   <div style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">${user.name}</div>
-                  <div style="font-size: 11.5px; color: #10B981;">● Conectado a YouTube</div>
+                  <div style="font-size: 11.5px; color: #10B981;">● Sincronizado con Google Drive</div>
                 </div>
               </div>
-              <div style="display: flex; gap: 8px;">
-                <button class="btn btn-primary" id="settings-sync-yt-btn" style="font-size: 12px; padding: 6px 14px;">Importar Carpetas</button>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn btn-secondary" id="settings-sync-cloud-btn" style="font-size: 12px; padding: 6px 12px;">Sincronizar ahora</button>
+                <button class="btn btn-primary" id="settings-sync-yt-btn" style="font-size: 12px; padding: 6px 14px;">Importar YouTube</button>
                 <button class="btn btn-secondary" id="settings-logout-yt-btn" style="font-size: 12px; padding: 6px 12px; color: var(--danger);">Desconectar</button>
               </div>
             </div>
@@ -1431,6 +1432,21 @@ class UIController {
       logoutYtBtn.addEventListener('click', () => {
         Auth.logout();
         this.renderUserBadge();
+        this.renderSettingsView();
+      });
+    }
+
+    const syncCloudBtn = document.getElementById('settings-sync-cloud-btn');
+    if (syncCloudBtn) {
+      syncCloudBtn.addEventListener('click', async () => {
+        syncCloudBtn.disabled = true;
+        const originalText = syncCloudBtn.textContent;
+        syncCloudBtn.textContent = 'Sincronizando...';
+        if (window.bluxCloudSync) {
+          await window.bluxCloudSync.sync();
+        }
+        syncCloudBtn.disabled = false;
+        syncCloudBtn.textContent = originalText;
         this.renderSettingsView();
       });
     }

@@ -39,7 +39,7 @@ class AuthManager {
     try {
       this.tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/youtube.readonly profile email',
+        scope: 'https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/drive.appdata profile email',
         callback: async (response) => {
           if (response.error) {
             console.error('[Auth] OAuth error:', response);

@@ -122,6 +122,14 @@ class CDCollectionManager {
 
   save() {
     Storage.set('cd_collection', this.collection);
+    if (window.bluxCloudSync?.scheduleUpload) {
+      window.bluxCloudSync.scheduleUpload();
+    }
+  }
+
+  reload() {
+    this.collection = Storage.get('cd_collection') || [];
+    this.notify();
   }
 
   subscribe(callback) {
