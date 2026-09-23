@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>BluxWave</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/logo.svg">
+  <link rel="shortcut icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/animations.css">
+  <link rel="stylesheet" href="./css/responsive.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+  <!-- Subtle Dynamic Ambient Glow -->
+  <div id="ambient-glow"></div>
+
+  <div id="app-container">
+    <!-- MAC-STYLE TOP NAVIGATION BAR -->
+    <header class="mac-header" id="mac-header">
+      <!-- Left: App Brand & Nav Pills -->
+      <div class="mac-header-left">
+        <div class="mac-brand" data-nav="home" title="BluxWave">
+          <img src="./assets/logo.svg" alt="BluxWave Logo" class="mac-brand-logo">
+          <span class="mac-brand-text">BluxWave</span>
+        </div>
+
+        <nav class="mac-nav">
+          <button class="mac-nav-item active nav-item" data-nav="home" title="Inicio">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span class="mac-nav-label">Inicio</span>
+          </button>
+
+          <button class="mac-nav-item nav-item" data-nav="library" title="Tu Biblioteca">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span class="mac-nav-label">Biblioteca</span>
+          </button>
+
+          <button class="mac-nav-item nav-item" data-nav="history" title="Historial">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span class="mac-nav-label">Historial</span>
+          </button>
+
+          <button class="mac-nav-item nav-item" data-nav="settings" title="Ajustes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span class="mac-nav-label">Ajustes</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Center: Spotlight Search -->
+      <div class="mac-header-center">
+        <div class="mac-search-box search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="global-search-input" class="search-input mac-search-input" placeholder="Buscar canciones, artistas...">
+        </div>
+      </div>
+
+      <!-- Right: Action Icons & User Badge -->
+      <div class="mac-header-right">
+        <div style="position: relative;">
+          <button class="mac-icon-btn" id="nav-playlists-btn" title="Tus Carpetas">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+          </button>
+          <!-- Quick Carpetas Popover -->
+          <div class="mac-playlists-popover" id="topbar-playlists-popover">
+            <div class="popover-header">
+              <span>Carpetas</span>
+              <button class="icon-btn" id="popover-new-playlist-btn" title="Crear Carpeta" style="width: 24px; height: 24px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="popover-list" id="sidebar-playlists-list"></div>
+          </div>
+        </div>
+
+        <button class="mac-icon-btn" id="sidebar-new-playlist-btn" title="Crear nueva Carpeta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+
+        <div style="position: relative;">
+          <div id="topbar-user-badge" class="mac-user-badge" title="Cuenta y Perfil"></div>
+          <!-- Compact User Popover Menu -->
+          <div class="mac-user-menu-popover" id="topbar-user-menu-popover">
+            <div class="user-menu-header" id="user-popover-header">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'><rect width='128' height='128' rx='64' fill='%2322222a'/><path d='M64 62a18 18 0 1 0 0-36 18 18 0 0 0 0 36zm0 10c-18 0-36 9-36 26v4h72v-4c0-17-18-26-36-26z' fill='%2371717a'/></svg>" id="user-popover-avatar" alt="" class="user-popover-avatar">
+              <div class="user-popover-info">
+                <div class="user-popover-name" id="user-popover-name">Usuario</div>
+                <div class="user-popover-subtitle" id="user-popover-bio">Perfil Musical</div>
+              </div>
+            </div>
+            <div class="user-menu-divider"></div>
+            <button class="user-menu-item" id="menu-nav-profile-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span>Mi Perfil Musical</span>
+            </button>
+            <button class="user-menu-item" id="menu-share-profile-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+              </svg>
+              <span>Compartir mi perfil</span>
+            </button>
+            <button class="user-menu-item" id="menu-nav-settings-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              <span>Ajustes</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+
+      <!-- VIEWS -->
+      <div id="view-home" class="view-container active"></div>
+      <div id="view-profile" class="view-container"></div>
+      <div id="view-artist" class="view-container"></div>
+      <div id="view-search" class="view-container"></div>
+      <div id="view-library" class="view-container"></div>
+      <div id="view-history" class="view-container"></div>
+      <div id="view-playlist" class="view-container"></div>
+      <div id="view-settings" class="view-container"></div>
+    </main>
+
+    <!-- MINI PLAYER -->
+    <footer class="mini-player">
+      <!-- Left: Track info -->
+      <div class="player-track-info">
+        <div class="player-cover-container" id="player-cover-container" title="Abrir Focus Mode">
+          <img src="https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" id="player-cover" class="player-cover" alt="Portada">
+        </div>
+        <div class="player-meta">
+          <span class="player-title" id="player-title">Selecciona una canción</span>
+          <span class="player-artist" id="player-artist">BluxWave</span>
+        </div>
+        <button class="player-fav-btn" id="player-fav-btn" title="Quedarme el CD (Colección)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Center: Controls & Scrubber -->
+      <div class="player-controls-group">
+        <div class="player-buttons">
+          <button class="control-btn" id="player-shuffle-btn" title="Reproducción aleatoria">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 3 21 3 21 8"></polyline>
+              <line x1="4" y1="20" x2="21" y2="3"></line>
+              <polyline points="21 16 21 21 16 21"></polyline>
+              <line x1="15" y1="15" x2="21" y2="21"></line>
+              <line x1="4" y1="4" x2="9" y2="9"></line>
+            </svg>
+          </button>
+
+          <button class="control-btn" id="player-prev-btn" title="Anterior">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="19 20 9 12 19 4 19 20"></polygon>
+              <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line>
+            </svg>
+          </button>
+
+          <button class="control-btn control-btn-play" id="player-play-btn" title="Reproducir / Pausar">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+
+          <button class="control-btn" id="player-next-btn" title="Siguiente">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 4 15 12 5 20 5 4"></polygon>
+              <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="player-progress-bar-wrapper">
+          <span class="time-label" id="player-time-current">00:00</span>
+          <div class="slider-container">
+            <div class="slider-track">
+              <div class="slider-fill" id="player-slider-fill"></div>
+            </div>
+            <input type="range" id="player-progress-input" class="slider-input" min="0" max="100" value="0" step="0.1">
+          </div>
+          <span class="time-label" id="player-time-duration">00:00</span>
+        </div>
+      </div>
+
+      <!-- Right: Actions & Volume -->
+      <div class="player-actions-group">
+        <div class="volume-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <div class="slider-container">
+            <div class="slider-track">
+              <div class="slider-fill" id="volume-fill" style="width: 80%;"></div>
+            </div>
+            <input type="range" id="volume-slider" class="slider-input" min="0" max="100" value="80">
+          </div>
+        </div>
+
+        <button class="icon-btn" id="queue-toggle-btn" title="Cola de reproducción">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+        </button>
+
+        <button class="icon-btn" id="video-toggle-btn" title="Mostrar / Ocultar video oficial">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+          </svg>
+        </button>
+
+        <button class="icon-btn" id="focus-toggle-btn" title="Focus Mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+          </svg>
+        </button>
+      </div>
+    </footer>
+
+    <!-- MOBILE BOTTOM NAVIGATION (Android Vertical) -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+      <button class="mobile-nav-item active nav-item" data-nav="home" title="Inicio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Inicio</span>
+      </button>
+
+      <button class="mobile-nav-item nav-item" data-nav="library" title="Biblioteca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        <span>Biblioteca</span>
+      </button>
+
+      <button class="mobile-nav-item nav-item" data-nav="history" title="Historial">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Historial</span>
+      </button>
+
+      <button class="mobile-nav-item nav-item" data-nav="profile" title="Perfil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>Perfil</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- QUEUE DRAWER PANEL -->
+  <div class="queue-panel" id="queue-panel">
+    <div class="queue-header">
+      <div>
+        <div class="queue-title">Cola de reproducción</div>
+        <div id="queue-count" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">0 canciones</div>
+      </div>
+      <div style="display: flex; gap: 4px;">
+        <button class="icon-btn" id="queue-clear-btn" title="Vaciar cola">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+        <button class="icon-btn" id="queue-close-btn" title="Cerrar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="queue-list" id="queue-list-container"></div>
+  </div>
+
+  <!-- FOCUS MODE: FULLSCREEN LIVING ROOM / TV CANVAS EXHIBIT -->
+  <div class="focus-overlay" id="focus-overlay">
+    <div id="focus-ambient-glow" class="focus-ambient-glow"></div>
+
+    <!-- Top Bar with Back Return Nav, Ambient Badge & Fullscreen -->
+    <div class="focus-top-bar">
+      <button class="focus-back-nav-btn" id="focus-back-btn" title="Volver a la música (Esc)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span>Volver a la música</span>
+      </button>
+
+      <div class="focus-top-actions">
+        <button class="focus-top-btn" id="focus-fullscreen-btn" title="Pantalla completa">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+        </button>
+        <button class="focus-close-btn" id="focus-close-btn" title="Salir de Focus Mode (Esc)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center Canvas Stage: Physical CD Jewel Case (Left) + CD Player Deck (Right) -->
+    <div class="focus-canvas-stage">
+      <div class="focus-physical-duo" id="focus-physical-duo">
+        <!-- 1. Physical Jewel Case (Left Side) -->
+        <div class="focus-jewel-case">
+          <div class="cd-case-spine">
+            <span class="spine-hinge spine-hinge-top"></span>
+            <span class="spine-hinge spine-hinge-bottom"></span>
+          </div>
+          <img src="https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" id="focus-case-cover" class="focus-case-image" alt="Portada" draggable="false">
+          <div class="cd-case-glare"></div>
+          <div class="cd-case-tab"></div>
+          <div class="case-bottom-reflection"></div>
+        </div>
+
+        <!-- 2. Dedicated CD Player Transport Deck (Right Side) -->
+        <div class="focus-player-deck" id="focus-player-deck">
+          <div class="deck-chassis">
+            <div class="deck-outer-ring"></div>
+            <div class="deck-tray-well">
+              <!-- Optical Laser Reader Mechanism -->
+              <div class="deck-laser-pickup">
+                <div class="deck-laser-rail"></div>
+                <div class="deck-laser-carriage">
+                  <div class="deck-laser-lens"></div>
+                  <div class="deck-laser-beam-glow"></div>
+                </div>
+              </div>
+
+              <!-- Motorized Spindle Clamp Center Hub -->
+              <div class="deck-spindle-hub">
+                <div class="deck-spindle-motor-ring"></div>
+                <div class="deck-spindle-cap"></div>
+              </div>
+
+              <!-- CD Disc Mounted on Player Spindle, spinning when playing -->
+              <div class="cd-disc focus-cd-disc" id="focus-cd-disc">
+                <div class="cd-tracks-grooves"></div>
+                <div class="cd-radial-texture"></div>
+                <div class="cd-rainbow-hologram"></div>
+                <div class="cd-center-label">
+                  <img src="https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" id="focus-cover" class="focus-cover" alt="Label" draggable="false">
+                </div>
+                <div class="cd-clamping-ring"></div>
+                <div class="cd-mirror-ring"></div>
+                <div class="cd-spindle-hole"></div>
+              </div>
+            </div>
+
+            <!-- Player Status Indicators & Branding -->
+            <div class="deck-status-strip">
+              <span class="deck-indicator-led active"></span>
+              <span class="deck-brand-label">BLUXWAVE HI-FI TRANSPORT</span>
+            </div>
+          </div>
+          <div class="deck-shadow-floor"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Meta & Aesthetic Gallery Details -->
+    <div class="focus-bottom-gallery">
+      <div class="focus-track-meta">
+        <div class="focus-title" id="focus-title">Selecciona una canción</div>
+        <div class="focus-artist-row">
+          <span class="focus-artist" id="focus-artist">BluxWave</span>
+          <span class="focus-meta-dot">•</span>
+          <span class="focus-extra-info" id="focus-extra-info">Hi-Fi Audio</span>
+          <button class="focus-fav-btn" id="focus-fav-btn" title="Quedarme el CD (Colección)" style="margin-left: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hairline Progress Bar -->
+      <div class="focus-progress-wrapper player-progress-bar-wrapper">
+        <span class="time-label" id="focus-time-current">00:00</span>
+        <div class="slider-container">
+          <div class="slider-track">
+            <div class="slider-fill" id="focus-slider-fill"></div>
+          </div>
+          <input type="range" id="focus-progress-input" class="slider-input" min="0" max="100" value="0" step="0.1">
+        </div>
+        <span class="time-label" id="focus-time-duration">00:00</span>
+      </div>
+
+      <!-- Discreet Controls -->
+      <div class="focus-controls">
+        <button class="control-btn" id="focus-shuffle-btn" title="Reproducción aleatoria">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+            <line x1="4" y1="4" x2="9" y2="9"></line>
+          </svg>
+        </button>
+
+        <button class="control-btn" id="focus-prev-btn" title="Anterior">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="19 20 9 12 19 4 19 20"></polygon>
+            <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line>
+          </svg>
+        </button>
+
+        <button class="control-btn control-btn-play" id="focus-play-btn" title="Reproducir / Pausar">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </button>
+
+        <button class="control-btn" id="focus-next-btn" title="Siguiente">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+            <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 6px; width: 100%;">
+        <div class="focus-title" id="focus-title" style="margin-bottom: 0;">Selecciona una canción</div>
+        <button class="focus-fav-btn" id="focus-fav-btn" title="Quedarme el CD (Colección)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="focus-artist" id="focus-artist">BluxWave</div>
+
+      <div class="focus-progress-wrapper player-progress-bar-wrapper">
+        <span class="time-label" id="focus-time-current">00:00</span>
+        <div class="slider-container">
+          <div class="slider-track">
+            <div class="slider-fill" id="focus-slider-fill"></div>
+          </div>
+          <input type="range" id="focus-progress-input" class="slider-input" min="0" max="100" value="0" step="0.1">
+        </div>
+        <span class="time-label" id="focus-time-duration">00:00</span>
+      </div>
+
+      <div class="focus-controls">
+        <button class="control-btn" id="focus-shuffle-btn" title="Reproducción aleatoria" style="width: 44px; height: 44px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+            <line x1="4" y1="4" x2="9" y2="9"></line>
+          </svg>
+        </button>
+
+        <button class="control-btn" id="focus-prev-btn" title="Anterior" style="width: 44px; height: 44px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="19 20 9 12 19 4 19 20"></polygon>
+            <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line>
+          </svg>
+        </button>
+
+        <button class="control-btn control-btn-play" id="focus-play-btn" title="Reproducir / Pausar" style="width: 54px; height: 54px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </button>
+
+        <button class="control-btn" id="focus-next-btn" title="Siguiente" style="width: 44px; height: 44px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+            <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEXT MENU (CUSTOM RIGHT CLICK) -->
+  <div id="context-menu" class="context-menu"></div>
+
+  <!-- GENERIC MODAL -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal-card" id="modal-content"></div>
+  </div>
+
+  <!-- YOUTUBE PLAYER DOCK (OFFICIAL EMBED) -->
+  <div id="yt-video-dock" class="yt-video-dock minimized">
+    <div class="yt-video-dock-header">
+      <span>Video oficial</span>
+      <button class="icon-btn" id="yt-dock-close-btn" title="Ocultar video" style="width: 22px; height: 22px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div id="yt-player-frame-wrapper">
+      <div id="yt-player-frame"></div>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div id="toast-container"></div>
+
+  <!-- SCRIPTS -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

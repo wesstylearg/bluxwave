@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BluxWave - Prototipo Sistema Visual CD</title>
+  <link rel="stylesheet" href="./src/css/main.css">
+  <style>
+    body {
+      background: #09090b;
+      color: #f4f4f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 40px;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 0 0 8px 0;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    p.subtitle {
+      color: #a1a1aa;
+      font-size: 14px;
+      margin: 0 0 24px 0;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #d4d4d8;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* ==========================================================================
+       JEWEL CASE (CAJA DE CD CERRADA)
+       ========================================================================== */
+    .cd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 24px;
+      perspective: 1000px;
+    }
+
+    .cd-case {
+      position: relative;
+      background: #121215;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1);
+      transform-style: preserve-3d;
+    }
+
+    .cd-case:hover {
+      transform: translateY(-4px) rotateY(-3deg) scale(1.02);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Acrylic Jewel Case Outer Frame */
+    .cd-case-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #18181b;
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.8),
+        0 8px 24px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+    }
+
+    /* Left Spine / Hinge of Jewel Case */
+    .cd-case-spine {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 10px;
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.04) 25%,
+        rgba(0, 0, 0, 0.5) 50%,
+        rgba(255, 255, 255, 0.08) 75%,
+        rgba(0, 0, 0, 0.4) 100%
+      );
+      border-right: 1px solid rgba(0, 0, 0, 0.6);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    /* Hinge notches (superior e inferior característicos de la caja de CD) */
+    .cd-case-spine::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 2px;
+      width: 6px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 1px;
+      border: 1px solid rgba(0, 0, 0, 0.4);
+    }
+
+    .cd-case-spine::after {
+      content: '';
+      position: absolute;
+      bottom: 10px;
+      left: 2px;
+      width: 6px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 1px;
+      border: 1px solid rgba(0, 0, 0, 0.4);
+    }
+
+    /* Artwork Insert */
+    .cd-case-artwork {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: filter 300ms ease;
+    }
+
+    /* Acrylic Glass Reflection Overlay */
+    .cd-case-glare {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.03) 40%,
+        transparent 41%,
+        transparent 65%,
+        rgba(255, 255, 255, 0.04) 100%
+      );
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    /* Front Edge Bevel */
+    .cd-case-frame::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 3px;
+      box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.15), inset -1px -1px 0 rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    /* Play Button Hover Overlay */
+    .cd-case-play-btn {
+      position: absolute;
+      inset: 0;
+      background: rgba(9, 9, 11, 0.4);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 200ms ease;
+      z-index: 7;
+    }
+
+    .cd-case:hover .cd-case-play-btn {
+      opacity: 1;
+    }
+
+    .play-pill {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #09090b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      transform: scale(0.9);
+      transition: transform 150ms ease;
+    }
+
+    .cd-case:hover .play-pill:hover {
+      transform: scale(1.08);
+    }
+
+    /* Playing State on Card */
+    .cd-case.is-playing .cd-case-frame {
+      box-shadow: 
+        0 0 0 2px #6366f1,
+        0 12px 28px rgba(99, 102, 241, 0.25);
+    }
+
+    .cd-case.is-playing .cd-case-play-btn {
+      opacity: 1;
+      background: rgba(9, 9, 11, 0.25);
+    }
+
+    .cd-case-meta {
+      padding: 10px 4px 0 4px;
+    }
+
+    .cd-case-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+
+    .cd-case-artist {
+      font-size: 12px;
+      color: #a1a1aa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ==========================================================================
+       THE PHYSICAL CD DISC (DISCO DE CD EN CSS PURO)
+       ========================================================================== */
+    .player-demo-container {
+      display: flex;
+      align-items: center;
+      gap: 48px;
+      background: #131316;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 32px 40px;
+      max-width: 780px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient Glow */
+    .cd-glow {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+      filter: blur(40px);
+      left: 30px;
+      top: 30px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* The CD Disc Base */
+    .cd-disc {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      z-index: 2;
+      box-shadow: 
+        0 14px 36px rgba(0, 0, 0, 0.6),
+        0 2px 6px rgba(0, 0, 0, 0.4),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+      /* Polycarbonate iridescent reflections & radial audio tracks */
+      background: 
+        radial-gradient(circle at center,
+          transparent 0%,
+          transparent 32%,
+          rgba(255, 255, 255, 0.03) 33%,
+          rgba(255, 255, 255, 0.01) 36%,
+          rgba(0, 0, 0, 0.4) 37%,
+          rgba(255, 255, 255, 0.04) 42%,
+          rgba(0, 0, 0, 0.2) 65%,
+          rgba(255, 255, 255, 0.03) 85%,
+          rgba(0, 0, 0, 0.5) 96%,
+          rgba(255, 255, 255, 0.15) 100%
+        ),
+        conic-gradient(
+          from 0deg,
+          #1e1e24 0deg,
+          #2a2a34 45deg,
+          #18181e 90deg,
+          #32323f 135deg,
+          #1c1c22 180deg,
+          #2c2c36 225deg,
+          #18181e 270deg,
+          #32323f 315deg,
+          #1e1e24 360deg
+        );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: transform;
+      animation: cd-spin 10s linear infinite;
+      animation-play-state: paused;
+    }
+
+    .cd-disc.spinning {
+      animation-play-state: running;
+    }
+
+    /* Subtle Rainbow Specular Sheen (Conic light refraction) */
+    .cd-disc::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 30deg,
+        transparent 0deg,
+        rgba(147, 197, 253, 0.07) 35deg,
+        rgba(216, 180, 254, 0.08) 60deg,
+        transparent 90deg,
+        transparent 180deg,
+        rgba(147, 197, 253, 0.07) 215deg,
+        rgba(216, 180, 254, 0.08) 240deg,
+        transparent 270deg
+      );
+      pointer-events: none;
+    }
+
+    /* Outer Track Ring Boundary */
+    .cd-disc::after {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      border-radius: 50%;
+      border: 1px dashed rgba(255, 255, 255, 0.04);
+      pointer-events: none;
+    }
+
+    /* Clear / Mirror Clamping Ring */
+    .cd-clamping-ring {
+      position: absolute;
+      width: 106px;
+      height: 106px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(255, 255, 255, 0.03) 65%,
+        rgba(0, 0, 0, 0.5) 100%
+      );
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    /* Small Central Printed Label (Derived from Album Thumbnail) */
+    .cd-center-label {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111113;
+    }
+
+    .cd-center-label img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 300ms ease;
+    }
+
+    /* Center Spindle Hole (Perforación circular auténtica) */
+    .cd-spindle-hole {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #09090b; /* Color de fondo exterior simulando el orificio */
+      border: 2px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.9),
+        0 1px 3px rgba(255, 255, 255, 0.1);
+      z-index: 10;
+    }
+
+    /* Spin Animation (Exactamente 10s por vuelta, suave y silencioso) */
+    @keyframes cd-spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      .cd-disc {
+        animation: none !important;
+      }
+      .cd-case:hover {
+        transform: none !important;
+      }
+    }
+
+    /* Player Info Demo Controls */
+    .player-demo-meta {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 2;
+    }
+
+    .player-demo-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+
+    .player-demo-artist {
+      font-size: 14px;
+      color: #a1a1aa;
+    }
+
+    .btn-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn-action {
+      background: #ffffff;
+      color: #09090b;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+
+    .btn-action:hover {
+      background: #e4e4e7;
+      transform: scale(1.02);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>BluxWave • Prototipo Aislado: Sistema Visual de CD</h1>
+    <p class="subtitle">Validación técnica de Cajas Jewel Case en CSS puro y Disco CD giratorio con pausa no destructiva.</p>
+  </div>
+
+  <!-- SECCIÓN 1: CAJAS DE CD CERRADAS -->
+  <div>
+    <div class="section-title">1. Colección de Canciones (Cajas de CD Cerradas)</div>
+    <div class="cd-grid" id="demo-cd-grid">
+      <!-- 6 Cards generated by JS -->
+    </div>
+  </div>
+
+  <!-- SECCIÓN 2: REPRODUCTOR CON EL CD FÍSICO GIRANDO -->
+  <div>
+    <div class="section-title">2. Reproductor con CD Físico Giratorio</div>
+    <div class="player-demo-container">
+      <div class="cd-glow"></div>
+
+      <!-- THE CD DISC -->
+      <div class="cd-disc" id="demo-cd-disc">
+        <div class="cd-clamping-ring">
+          <div class="cd-center-label">
+            <img src="https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" id="demo-cd-img" alt="CD Label">
+          </div>
+          <div class="cd-spindle-hole"></div>
+        </div>
+      </div>
+
+      <!-- PLAYER CONTROLS & META -->
+      <div class="player-demo-meta">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6366f1; margin-bottom: 6px;">En Reproducción</div>
+          <div class="player-demo-title" id="demo-title">lofi hip hop radio - beats to relax/study to</div>
+          <div class="player-demo-artist" id="demo-artist">Lofi Girl</div>
+        </div>
+
+        <div class="btn-controls">
+          <button class="btn-action" id="demo-play-btn">
+            <span id="demo-play-label">▶ Reproducir CD</span>
+          </button>
+          <button class="btn-secondary" id="demo-prev-btn">⏮ Anterior</button>
+          <button class="btn-secondary" id="demo-next-btn">⏭ Siguiente</button>
+        </div>
+        <div style="font-size: 12px; color: #71717a;">
+          * Al pausar, el CD conserva exactamente su ángulo de rotación (<code>animation-play-state: paused</code>).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEMO_TRACKS = [
+      {
+        id: 'jfKfPfyJRdk',
+        title: 'lofi hip hop radio - beats to relax/study to',
+        artist: 'Lofi Girl',
+        thumbnail: 'https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg'
+      },
+      {
+        id: 'kgx4WGK0oNU',
+        title: 'Clair de Lune - Claude Debussy',
+        artist: 'Rousseau',
+        thumbnail: 'https://i.ytimg.com/vi/kgx4WGK0oNU/hqdefault.jpg'
+      },
+      {
+        id: '4xDzrJKXOOY',
+        title: 'synthwave radio - chill synth / retro beats',
+        artist: 'Lofi Girl - Synthwave',
+        thumbnail: 'https://i.ytimg.com/vi/4xDzrJKXOOY/hqdefault.jpg'
+      },
+      {
+        id: 'q76bMs-NwRk',
+        title: 'Gymnopédie No. 1 - Erik Satie',
+        artist: 'Rousseau',
+        thumbnail: 'https://i.ytimg.com/vi/q76bMs-NwRk/hqdefault.jpg'
+      },
+      {
+        id: 'fJ9rUzIMcZQ',
+        title: 'Bohemian Rhapsody',
+        artist: 'Queen Official',
+        thumbnail: 'https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg'
+      },
+      {
+        id: 'JGwWNGJdvx8',
+        title: 'Shape of You',
+        artist: 'Ed Sheeran',
+        thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg'
+      }
+    ];
+
+    let currentIdx = 0;
+    let isPlaying = false;
+
+    const grid = document.getElementById('demo-cd-grid');
+    const cdDisc = document.getElementById('demo-cd-disc');
+    const cdImg = document.getElementById('demo-cd-img');
+    const titleEl = document.getElementById('demo-title');
+    const artistEl = document.getElementById('demo-artist');
+    const playBtn = document.getElementById('demo-play-btn');
+    const playLabel = document.getElementById('demo-play-label');
+
+    function renderGrid() {
+      grid.innerHTML = DEMO_TRACKS.map((t, idx) => `
+        <div class="cd-case ${idx === currentIdx && isPlaying ? 'is-playing' : ''}" data-index="${idx}">
+          <div class="cd-case-frame">
+            <div class="cd-case-spine"></div>
+            <img src="${t.thumbnail}" class="cd-case-artwork" alt="${t.title}" loading="lazy">
+            <div class="cd-case-glare"></div>
+            <div class="cd-case-play-btn">
+              <div class="play-pill">
+                ${idx === currentIdx && isPlaying ? `
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                ` : `
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                `}
+              </div>
+            </div>
+          </div>
+          <div class="cd-case-meta">
+            <div class="cd-case-title" title="${t.title}">${t.title}</div>
+            <div class="cd-case-artist">${t.artist}</div>
+          </div>
+        </div>
+      `).join('');
+
+      grid.querySelectorAll('.cd-case').forEach(card => {
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.dataset.index, 10);
+          if (idx === currentIdx) {
+            togglePlay();
+          } else {
+            loadTrack(idx, true);
+          }
+        });
+      });
+    }
+
+    function loadTrack(idx, autoPlay = true) {
+      currentIdx = idx;
+      const track = DEMO_TRACKS[idx];
+
+      // Smooth transition for CD center image
+      cdImg.style.opacity = '0';
+      setTimeout(() => {
+        cdImg.src = track.thumbnail;
+        titleEl.textContent = track.title;
+        artistEl.textContent = track.artist;
+        cdImg.style.opacity = '1';
+      }, 200);
+
+      if (autoPlay) {
+        setPlaying(true);
+      }
+      renderGrid();
+    }
+
+    function setPlaying(play) {
+      isPlaying = play;
+      if (isPlaying) {
+        cdDisc.classList.add('spinning');
+        playLabel.textContent = '⏸ Pausar CD';
+      } else {
+        cdDisc.classList.remove('spinning');
+        playLabel.textContent = '▶ Reproducir CD';
+      }
+      renderGrid();
+    }
+
+    function togglePlay() {
+      setPlaying(!isPlaying);
+    }
+
+    playBtn.addEventListener('click', togglePlay);
+
+    document.getElementById('demo-next-btn').addEventListener('click', () => {
+      loadTrack((currentIdx + 1) % DEMO_TRACKS.length, true);
+    });
+
+    document.getElementById('demo-prev-btn').addEventListener('click', () => {
+      loadTrack((currentIdx - 1 + DEMO_TRACKS.length) % DEMO_TRACKS.length, true);
+    });
+
+    renderGrid();
+  </script>
+</body>
+</html>
