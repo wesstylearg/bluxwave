@@ -12,6 +12,7 @@ import { Config } from './config.js';
 import { Auth } from './auth.js';
 import { CDCollection } from './collection.js';
 import { ColorExtractor } from './color.js';
+import logoUrl from '../assets/logo.png';
 
 class UIController {
   constructor() {
@@ -768,7 +769,7 @@ class UIController {
 
     let html = `
       <div class="view-header" style="display: flex; align-items: center; gap: 14px; margin-bottom: 28px;">
-        <img src="./assets/logo.png" alt="BluxWave" style="width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.5);">
+        <img src="${logoUrl}" alt="BluxWave" style="width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.5); object-fit: contain;">
         <div>
           <h1 class="view-title" style="margin-bottom: 2px; font-size: 24px; letter-spacing: -0.5px;">BluxWave</h1>
           <p class="view-subtitle" style="font-size: 13px;">Tu música, limpia y directa</p>
