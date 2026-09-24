@@ -96,6 +96,8 @@ input {
   opacity: 0.22;
   filter: blur(100px);
   transform: translateZ(0);
+  contain: strict;
+  will-change: background, opacity;
   transition: background 600ms ease, opacity 600ms ease;
   background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 60%);
 }

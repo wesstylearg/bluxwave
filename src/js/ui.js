@@ -768,7 +768,7 @@ class UIController {
 
     let html = `
       <div class="view-header" style="display: flex; align-items: center; gap: 14px; margin-bottom: 28px;">
-        <img src="./assets/logo.svg" alt="BluxWave" style="width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.5);">
+        <img src="./assets/logo.png" alt="BluxWave" style="width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.5);">
         <div>
           <h1 class="view-title" style="margin-bottom: 2px; font-size: 24px; letter-spacing: -0.5px;">BluxWave</h1>
           <p class="view-subtitle" style="font-size: 13px;">Tu música, limpia y directa</p>
@@ -1455,41 +1455,20 @@ class UIController {
           `}
         </div>
 
-        <!-- YouTube Data API Key -->
-        ${apiKey ? `
-          <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);"></span>
-              <div>
-                <div style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">YouTube Data API v3 activa</div>
-                <div style="font-size: 11.5px; color: var(--text-muted);">Búsqueda global y catálogo habilitados</div>
-              </div>
-            </div>
-            <button class="btn btn-secondary" id="toggle-change-api-key-btn" style="font-size: 12px; padding: 5px 12px;">Modificar clave</button>
-          </div>
-          <div id="settings-api-key-box" style="display: none; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px;">
-            <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Modificar YouTube Data API v3 Key</h3>
-            <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5;">
-              Para buscar cualquier canción o artista en tiempo real. Se almacena de forma privada en tu dispositivo.
-            </p>
-            <div style="display: flex; gap: 8px;">
-              <input type="password" id="settings-api-key-input" class="modal-input" style="margin-bottom: 0;" placeholder="AIzaSy..." value="${apiKey}">
-              <button class="btn btn-primary" id="save-api-key-btn">Guardar</button>
+        <!-- Estado del Servicio de Música & Búsqueda (API Key oculta para demostraciones y grabaciones) -->
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #10B981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);"></span>
+            <div>
+              <div style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">Servicio de Streaming & Búsqueda</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">Catálogo oficial activo y conectado</div>
             </div>
           </div>
-        ` : `
-          <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px;">
-            <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">YouTube Data API v3 Key</h3>
-            <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5;">
-              Para buscar cualquier canción o artista en tiempo real. Se almacena de forma privada en tu dispositivo.
-            </p>
-            <div style="display: flex; gap: 8px;">
-              <input type="password" id="settings-api-key-input" class="modal-input" style="margin-bottom: 0;" placeholder="AIzaSy..." value="">
-              <button class="btn btn-primary" id="save-api-key-btn">Guardar</button>
-            </div>
-            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Sin clave: se utilizará el catálogo musical de muestra seleccionado.</p>
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #10B981; font-weight: 500; background: rgba(16, 185, 129, 0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            En línea
           </div>
-        `}
+        </div>
 
         <!-- Atajos de Teclado -->
         <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px;">
@@ -2105,14 +2084,14 @@ class UIController {
               <div class="case-cd-grooves"></div>
               <div class="case-cd-radial-texture"></div>
               <div class="case-cd-label">
-                <img src="${track.thumbnail}" alt="" loading="lazy">
+                <img src="${track.thumbnail}" alt="" loading="lazy" decoding="async">
               </div>
               <div class="case-cd-hole"></div>
             </div>
           </div>
           <div class="song-card-cover-wrapper">
             <div class="cd-case-spine"></div>
-            <img src="${track.thumbnail}" alt="${this.escapeHTML(track.title)}" class="song-card-cover" loading="lazy">
+            <img src="${track.thumbnail}" alt="${this.escapeHTML(track.title)}" class="song-card-cover" loading="lazy" decoding="async">
             <div class="cd-case-glare"></div>
           </div>
         </div>
@@ -2135,14 +2114,14 @@ class UIController {
               <div class="case-cd-grooves"></div>
               <div class="case-cd-radial-texture"></div>
               <div class="case-cd-label">
-                <img src="${track.thumbnail}" alt="" loading="lazy">
+                <img src="${track.thumbnail}" alt="" loading="lazy" decoding="async">
               </div>
               <div class="case-cd-hole"></div>
             </div>
           </div>
           <div class="compact-cd-cover-wrapper">
             <div class="compact-spine"></div>
-            <img src="${track.thumbnail}" alt="${this.escapeHTML(track.title)}" class="compact-cd-cover" loading="lazy">
+            <img src="${track.thumbnail}" alt="${this.escapeHTML(track.title)}" class="compact-cd-cover" loading="lazy" decoding="async">
             <div class="cd-case-glare"></div>
           </div>
         </div>
@@ -2158,7 +2137,7 @@ class UIController {
     return `
       <div class="song-row ${isCurrent ? 'playing' : ''}" data-track-id="${track.id}" data-track='${JSON.stringify(track).replace(/'/g, "&apos;")}' data-playlist-id="${playlistId || ''}">
         <div class="song-row-index">${idx + 1}</div>
-        <img src="${track.thumbnail}" class="song-row-thumbnail" loading="lazy" alt="${this.escapeHTML(track.title)}">
+        <img src="${track.thumbnail}" class="song-row-thumbnail" loading="lazy" decoding="async" alt="${this.escapeHTML(track.title)}">
         <div class="song-row-info">
           <div class="song-row-title" title="${this.escapeHTML(track.title)}">${this.escapeHTML(track.title)}</div>
           <div class="song-row-artist" title="Ver perfil de ${this.escapeHTML(cleanArtistName)}">${this.escapeHTML(cleanArtistName)}</div>
@@ -2884,7 +2863,7 @@ class UIController {
               <span class="spine-hinge spine-hinge-top"></span>
               <span class="spine-hinge spine-hinge-bottom"></span>
             </div>
-            <img src="${cd.thumbnail}" alt="${this.escapeHTML(cd.title)}" loading="lazy" draggable="false">
+            <img src="${cd.thumbnail}" alt="${this.escapeHTML(cd.title)}" loading="lazy" decoding="async" draggable="false">
             <div class="cd-case-glare"></div>
             <div class="cd-case-tab"></div>
           </div>
