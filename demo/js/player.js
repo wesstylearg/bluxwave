@@ -114,6 +114,11 @@ class PlayerController {
   startProgressTimer() {
     this.stopProgressTimer();
 
+    // If document is in background or hidden, completely suspend timer to consume 0 CPU
+    if (typeof document !== 'undefined' && document.hidden) {
+      return;
+    }
+
     const tick = () => {
       if (this.player && this.isPlaying && typeof this.player.getCurrentTime === 'function') {
         try {
@@ -130,18 +135,7 @@ class PlayerController {
       }
     };
 
-    // 300ms foreground for smooth slider, 1000ms when document is hidden (background / screen-off)
-    const interval = typeof document !== 'undefined' && document.hidden ? 1000 : 300;
-    this.progressInterval = setInterval(tick, interval);
-
-    if (typeof document !== 'undefined' && !this._visibilityBound) {
-      this._visibilityBound = true;
-      document.addEventListener('visibilitychange', () => {
-        if (this.isPlaying) {
-          this.startProgressTimer();
-        }
-      });
-    }
+    this.progressInterval = setInterval(tick, 300);
   }
 
   stopProgressTimer() {

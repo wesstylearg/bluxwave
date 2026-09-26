@@ -116,4 +116,22 @@ input {
   z-index: 1;
 }
 
+/* ==========================================================================
+   APP SUSPENSION (Zero-Resource Inactive Mode)
+   Pauses all GPU compositing, blur shaders and animations when tab/window is hidden
+   ========================================================================== */
+body.app-suspended *,
+body.app-suspended *::before,
+body.app-suspended *::after {
+  animation-play-state: paused !important;
+}
+
+body.app-suspended #ambient-glow,
+body.app-suspended #focus-ambient-glow {
+  opacity: 0 !important;
+  filter: none !important;
+  will-change: auto !important;
+}
+
+
 

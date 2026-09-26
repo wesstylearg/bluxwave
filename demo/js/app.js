@@ -40,5 +40,34 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Centralized Lifecycle & Resource Suspension Manager
+  const onVisibilityChange = () => {
+    if (document.hidden) {
+      document.body.classList.add('app-suspended');
+      Player.stopProgressTimer();
+    } else {
+      document.body.classList.remove('app-suspended');
+      if (Player.isPlaying) {
+        if (Player.player && typeof Player.player.getCurrentTime === 'function') {
+          try {
+            Player.currentTime = Player.player.getCurrentTime() || 0;
+            Player.duration = Player.player.getDuration() || Player.duration || 0;
+            Player.emit('timeUpdate', {
+              currentTime: Player.currentTime,
+              duration: Player.duration,
+              progress: Player.duration > 0 ? (Player.currentTime / Player.duration) * 100 : 0
+            });
+          } catch (e) {}
+        }
+        Player.startProgressTimer();
+      }
+    }
+  };
+
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('pagehide', () => document.body.classList.add('app-suspended'));
+  window.addEventListener('pageshow', () => document.body.classList.remove('app-suspended'));
+
   console.log('[BluxWave] Ready.');
 });
+

@@ -26,6 +26,8 @@ class UIController {
     this.currentDiscoveryTier = 1;
     this.currentDiscoveryGenre = null;
     this.historyDayFilter = 'all';
+    this.isContextMenuOpen = false;
+    this._lastActiveTrackId = null;
   }
 
   init() {
@@ -675,9 +677,11 @@ class UIController {
       }
     });
 
-    window.addEventListener('scroll', () => {
-      this.closeContextMenu();
-    }, true);
+    document.addEventListener('scroll', () => {
+      if (this.isContextMenuOpen) {
+        this.closeContextMenu();
+      }
+    }, { capture: true, passive: true });
 
     const modalBackdrop = document.getElementById('modal-backdrop');
     if (modalBackdrop) {
@@ -1865,6 +1869,7 @@ class UIController {
     `;
 
     menu.classList.add('open');
+    this.isContextMenuOpen = true;
     const menuWidth = 220;
     const menuHeight = fromPlaylistId ? 260 : 220;
     let posX = e.clientX;
@@ -1925,6 +1930,8 @@ class UIController {
   }
 
   closeContextMenu() {
+    if (!this.isContextMenuOpen) return;
+    this.isContextMenuOpen = false;
     const menu = document.getElementById('context-menu');
     if (menu) menu.classList.remove('open');
   }
@@ -2355,14 +2362,16 @@ class UIController {
     if (dom.fillEl) dom.fillEl.style.width = `${progress}%`;
     if (dom.inputEl && document.activeElement !== dom.inputEl) dom.inputEl.value = progress;
 
-    if (dom.focusCurTime && dom.focusCurTime.textContent !== formattedCurrent) {
-      dom.focusCurTime.textContent = formattedCurrent;
+    if (this.isFocusMode) {
+      if (dom.focusCurTime && dom.focusCurTime.textContent !== formattedCurrent) {
+        dom.focusCurTime.textContent = formattedCurrent;
+      }
+      if (dom.focusDurTime && dom.focusDurTime.textContent !== formattedTotal) {
+        dom.focusDurTime.textContent = formattedTotal;
+      }
+      if (dom.focusFill) dom.focusFill.style.width = `${progress}%`;
+      if (dom.focusInput && document.activeElement !== dom.focusInput) dom.focusInput.value = progress;
     }
-    if (dom.focusDurTime && dom.focusDurTime.textContent !== formattedTotal) {
-      dom.focusDurTime.textContent = formattedTotal;
-    }
-    if (dom.focusFill) dom.focusFill.style.width = `${progress}%`;
-    if (dom.focusInput && document.activeElement !== dom.focusInput) dom.focusInput.value = progress;
   }
 
   updateVolumeSlider(volume) {
@@ -2391,32 +2400,29 @@ class UIController {
   highlightActiveRow() {
     const currentTrack = Player.currentTrack;
     const isPlaying = Player.isPlaying;
+    const newId = currentTrack ? currentTrack.id : null;
+    const oldId = this._lastActiveTrackId;
 
-    document.querySelectorAll('.song-row').forEach(row => {
-      try {
-        const trackId = row.dataset.trackId;
-        row.classList.toggle('playing', !!(currentTrack && trackId === currentTrack.id));
-      } catch {}
-    });
+    if (oldId && oldId !== newId) {
+      document.querySelectorAll(`[data-track-id="${oldId}"], [data-cd-id="${oldId}"]`).forEach(el => {
+        el.classList.remove('playing', 'is-playing');
+        const disc = el.querySelector('.case-cd-disc');
+        if (disc) disc.style.animationPlayState = 'paused';
+      });
+    }
 
-    document.querySelectorAll('.song-card[data-track-id]').forEach(card => {
-      try {
-        const trackId = card.dataset.trackId;
-        const isCurrent = !!(currentTrack && trackId === currentTrack.id);
-        card.classList.toggle('is-playing', isCurrent);
-
-        const disc = card.querySelector('.case-cd-disc');
-        if (disc) {
-          disc.style.animationPlayState = (isCurrent && isPlaying) ? 'running' : 'paused';
+    if (newId) {
+      document.querySelectorAll(`[data-track-id="${newId}"], [data-cd-id="${newId}"]`).forEach(el => {
+        if (el.classList.contains('song-row')) el.classList.add('playing');
+        if (el.classList.contains('song-card') || el.classList.contains('shelf-cd-item') || el.classList.contains('compact-cd-card')) {
+          el.classList.add('is-playing');
         }
-      } catch {}
-    });
+        const disc = el.querySelector('.case-cd-disc');
+        if (disc) disc.style.animationPlayState = isPlaying ? 'running' : 'paused';
+      });
+    }
 
-    document.querySelectorAll('.shelf-cd-item[data-cd-id]').forEach(item => {
-      const cdId = item.dataset.cdId;
-      const isCurrent = !!(currentTrack && cdId === currentTrack.id);
-      item.classList.toggle('is-playing', isCurrent);
-    });
+    this._lastActiveTrackId = newId;
   }
 
   renderQueuePanel(queueData) {
@@ -2554,7 +2560,11 @@ class UIController {
 
     overlay.classList.remove('is-idle');
 
+    let lastReset = 0;
     this._focusIdleReset = () => {
+      const now = Date.now();
+      if (now - lastReset < 250) return;
+      lastReset = now;
       overlay.classList.remove('is-idle');
       clearTimeout(this._focusIdleTimeout);
       this._focusIdleTimeout = setTimeout(() => {
@@ -2564,9 +2574,14 @@ class UIController {
       }, 4500);
     };
 
-    window.addEventListener('mousemove', this._focusIdleReset);
+    window.addEventListener('mousemove', this._focusIdleReset, { passive: true });
     window.addEventListener('touchstart', this._focusIdleReset, { passive: true });
-    this._focusIdleReset();
+    clearTimeout(this._focusIdleTimeout);
+    this._focusIdleTimeout = setTimeout(() => {
+      if (this.isFocusMode) {
+        overlay.classList.add('is-idle');
+      }
+    }, 4500);
   }
 
   clearFocusIdleTimer() {
@@ -2604,6 +2619,10 @@ class UIController {
       this.initFocusIdleTimer();
     } else {
       this.clearFocusIdleTimer();
+      const focusDisc = document.getElementById('focus-cd-disc');
+      if (focusDisc) {
+        focusDisc.style.animationPlayState = 'paused';
+      }
     }
   }
 
