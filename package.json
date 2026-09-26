@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && vite build demo --base ./ --outDir ../dist/demo --emptyOutDir",
+    "build:app": "vite build",
+    "build:demo": "vite build demo --base ./ --outDir ../dist/demo --emptyOutDir",
     "preview": "vite preview",
     "demo": "vite demo",
     "tauri": "tauri"
