@@ -14,26 +14,32 @@ const DEFAULT_SETTINGS = {
   volume: 80,
   autoplay: true,
   enableShortcuts: true,
-  focusBackgroundGlow: true,
+  focusBackgroundGlow: false,
   lastPlayedId: null,
-  customUsername: '',
+  customUsername: 'Valen',
   customAvatar: '',
-  userBio: ''
+  userBio: 'Melómano en BluxWave Lite.'
 };
 
 class ConfigManager {
   constructor() {
     this.settings = { ...DEFAULT_SETTINGS, ...(Storage.get('settings') || {}) };
 
-    // Si hay una API Key compartida en el código y el usuario no tiene una en su almacenamiento
-    if (!this.settings.youtubeApiKey && DEFAULT_YOUTUBE_API_KEY) {
+    // Garantizar que la API Key esté siempre activa y configurada
+    if (!this.settings.youtubeApiKey || this.settings.youtubeApiKey.length < 10) {
       this.settings.youtubeApiKey = DEFAULT_YOUTUBE_API_KEY;
+    }
+
+    if (!this.settings.customUsername) {
+      this.settings.customUsername = 'Valen';
     }
 
     // Fallback to Vite environment variable if localStorage has no key
     if (!this.settings.youtubeApiKey && import.meta.env?.VITE_YOUTUBE_API_KEY) {
       this.settings.youtubeApiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
     }
+
+    Storage.set('settings', this.settings);
   }
 
   get(key) {

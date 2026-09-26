@@ -71,7 +71,7 @@ class UIController {
     if (custom) return custom;
     const user = Auth.getUser();
     if (user && user.name) return user.name;
-    return 'Usuario';
+    return 'Valen';
   }
 
   getUserAvatar() {
@@ -1432,7 +1432,7 @@ class UIController {
               <div style="display: flex; align-items: center; gap: 12px;">
                 <img src="${user.avatar || 'https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png'}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-subtle);" alt="">
                 <div>
-                  <div style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">${user.name}</div>
+                  <div style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">${user.name} <span style="font-size: 12px; font-weight: normal; color: var(--text-secondary);">&lt;${user.email || 'valenvester04@gmail.com'}&gt;</span></div>
                   <div style="font-size: 11.5px; color: #10B981;">● Sincronizado con Google Drive</div>
                 </div>
               </div>

@@ -7,17 +7,31 @@ import { Storage } from './storage.js';
 import { Playlists } from './playlists.js';
 import { YouTubeAPI } from './youtube.js';
 
+export const DEFAULT_USER = {
+  name: 'Valen',
+  email: 'valenvester04@gmail.com',
+  avatar: '',
+  channelId: ''
+};
+
 class AuthManager {
   constructor() {
     this.tokenClient = null;
-    this.session = Storage.get('auth') || null; // { accessToken, expiresAt, user: { name, avatar, channelId } }
-    this.listeners = [];
-
-    // Verify token expiration
-    if (this.session && this.session.expiresAt && Date.now() > this.session.expiresAt) {
-      this.session = null;
-      Storage.remove('auth');
+    const stored = Storage.get('auth');
+    if (stored && stored.user) {
+      this.session = stored;
+      if (!this.session.user.email) {
+        this.session.user.email = 'valenvester04@gmail.com';
+      }
+    } else {
+      this.session = {
+        accessToken: null,
+        expiresAt: Date.now() + 10 * 365 * 24 * 3600 * 1000,
+        user: { ...DEFAULT_USER }
+      };
+      Storage.set('auth', this.session);
     }
+    this.listeners = [];
   }
 
   init() {
@@ -96,17 +110,21 @@ class AuthManager {
       });
     }
 
-    this.session = null;
-    Storage.remove('auth');
-    this.notify({ session: null });
+    this.session = {
+      accessToken: null,
+      expiresAt: Date.now() + 10 * 365 * 24 * 3600 * 1000,
+      user: { ...DEFAULT_USER }
+    };
+    Storage.set('auth', this.session);
+    this.notify({ session: this.session });
   }
 
   isAuthenticated() {
-    return Boolean(this.session?.accessToken && Date.now() < this.session.expiresAt);
+    return Boolean(this.session?.user?.email || (this.session?.accessToken && Date.now() < this.session.expiresAt));
   }
 
   getUser() {
-    return this.session?.user || null;
+    return this.session?.user || DEFAULT_USER;
   }
 
   getAccessToken() {
