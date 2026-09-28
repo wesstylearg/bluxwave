@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./css/main.css">
   <link rel="stylesheet" href="./css/components.css">
   <link rel="stylesheet" href="./css/responsive.css">
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1" async defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="lite-mode">
@@ -101,6 +102,15 @@
           </svg>
         </button>
 
+        <!-- Cast to TV button -->
+        <button class="mac-icon-btn" id="cast-connect-btn" title="Conectar a BLUXWAVE TV" style="position: relative;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+            <polyline points="17 2 12 7 7 2"></polyline>
+          </svg>
+          <span class="cast-status-dot" id="cast-status-dot" style="display: none; position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: #10B981; box-shadow: 0 0 6px #10B981;"></span>
+        </button>
+
         <div style="position: relative;">
           <div id="topbar-user-badge" class="mac-user-badge" title="Cuenta y Perfil"></div>
           <!-- Compact User Popover Menu -->
@@ -152,6 +162,19 @@
       <div id="view-playlist" class="view-container"></div>
       <div id="view-settings" class="view-container"></div>
     </main>
+
+    <!-- CAST CONNECTED BANNER (Active TV Controller) -->
+    <div id="cast-device-banner" class="cast-device-banner" style="display: none;">
+      <div class="cast-banner-info">
+        <span class="cast-banner-dot"></span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+          <polyline points="17 2 12 7 7 2"></polyline>
+        </svg>
+        <span>Controlando <strong id="cast-device-name">BLUXWAVE TV</strong></span>
+      </div>
+      <button id="cast-banner-disconnect-btn" class="cast-banner-disconnect-btn" title="Desconectar control">Desconectar</button>
+    </div>
 
     <!-- MINI PLAYER (CLEAN 2D) -->
     <footer class="mini-player">

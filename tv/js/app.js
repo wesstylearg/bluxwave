@@ -9,9 +9,11 @@ import { Auth } from './auth.js';
 import { CloudSync } from './sync.js';
 import { CURATED_TRACKS } from './youtube.js';
 import { SpatialNavigator } from './spatial-nav.js';
+import { MediaSessionManager } from './media-session.js';
+import { CastReceiverManager } from './cast-receiver.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-  console.log('[BluxWave] Initializing Android TV 10-foot player...');
+  console.log('[BluxWave] Initializing Android TV 10-foot player with Cast Receiver...');
 
   // Expose on window for handlers
   window.bluxUI = UI;
@@ -20,9 +22,11 @@ window.addEventListener('DOMContentLoaded', () => {
   window.bluxAuth = Auth;
   window.bluxCloudSync = CloudSync;
 
-  // Initialize Auth, CloudSync & UI
+  // Initialize Auth, CloudSync, MediaSession, Cast Receiver & UI
   Auth.init();
   CloudSync.init();
+  MediaSessionManager.init();
+  CastReceiverManager.init();
   UI.init();
 
   // Initialize Spatial Navigation for Android TV D-Pad Remote

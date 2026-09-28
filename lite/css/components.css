@@ -1853,3 +1853,76 @@
   font-size: 10.5px;
   color: var(--text-muted);
 }
+
+/* ==========================================================================
+   GOOGLE CAST & BLUXWAVE TV CONTROLLER STYLES
+   ========================================================================== */
+.cast-device-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: rgba(16, 185, 129, 0.12);
+  border-top: 1px solid rgba(16, 185, 129, 0.3);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  font-size: 12.5px;
+  color: #34D399;
+  z-index: 80;
+}
+
+.cast-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cast-banner-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+}
+
+.cast-banner-disconnect-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cast-banner-disconnect-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #EF4444;
+}
+
+.cast-device-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cast-device-item:hover,
+.cast-device-item:active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.cast-device-item.connected {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.08);
+}
+

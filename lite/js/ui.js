@@ -11,6 +11,7 @@ import { YouTubeAPI, CURATED_TRACKS } from './youtube.js';
 import { Config } from './config.js';
 import { Auth } from './auth.js';
 import { CDCollection } from './collection.js';
+import { CastManager } from './cast.js';
 import logoUrl from '../assets/logo.png';
 
 class UIController {
@@ -278,15 +279,21 @@ class UIController {
   subscribeToModels() {
     // Player Events
     Player.on('stateChange', ({ isPlaying }) => {
-      this.updatePlayPauseIcons(isPlaying);
+      if (!CastManager.isConnected) {
+        this.updatePlayPauseIcons(isPlaying);
+      }
     });
 
     Player.on('trackChange', (track) => {
-      this.updateTrackInfo(track);
+      if (!CastManager.isConnected) {
+        this.updateTrackInfo(track);
+      }
     });
 
     Player.on('timeUpdate', ({ currentTime, duration, progress }) => {
-      this.updateProgress(currentTime, duration, progress);
+      if (!CastManager.isConnected) {
+        this.updateProgress(currentTime, duration, progress);
+      }
     });
 
     Player.on('error', (code) => {
@@ -297,6 +304,17 @@ class UIController {
         Queue.next();
       } else {
         this.showToast('Error de reproducción en el contenido.');
+      }
+    });
+
+    // Cast Manager Events
+    CastManager.on('statusChange', ({ status, device }) => {
+      this.updateCastUI(status, device);
+    });
+
+    CastManager.on('stateUpdate', (tvState) => {
+      if (CastManager.isConnected && tvState) {
+        this.syncTvPlaybackState(tvState);
       }
     });
 
@@ -392,15 +410,30 @@ class UIController {
       });
     }
 
-    // Mini Player Controls
+    // Mini Player Controls (Local Player or Remote TV Controller)
     const playBtn = document.getElementById('player-play-btn');
-    if (playBtn) playBtn.addEventListener('click', () => Player.togglePlay());
+    if (playBtn) {
+      playBtn.addEventListener('click', () => {
+        if (CastManager.isConnected) CastManager.togglePlay();
+        else Player.togglePlay();
+      });
+    }
 
     const nextBtn = document.getElementById('player-next-btn');
-    if (nextBtn) nextBtn.addEventListener('click', () => Queue.next());
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (CastManager.isConnected) CastManager.next();
+        else Queue.next();
+      });
+    }
 
     const prevBtn = document.getElementById('player-prev-btn');
-    if (prevBtn) prevBtn.addEventListener('click', () => Queue.prev());
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (CastManager.isConnected) CastManager.previous();
+        else Queue.prev();
+      });
+    }
 
     const shuffleBtn = document.getElementById('player-shuffle-btn');
     if (shuffleBtn) {
@@ -434,14 +467,16 @@ class UIController {
       });
     }
 
-    // Progress Bar Scrubber
+    // Progress Bar Scrubber (Synchronized with TV or Local)
     const progressBar = document.getElementById('player-progress-input');
     if (progressBar) {
       progressBar.addEventListener('input', (e) => {
         const pct = parseFloat(e.target.value);
-        if (Player.duration > 0) {
-          const seekTo = (pct / 100) * Player.duration;
-          Player.seekTo(seekTo);
+        const duration = CastManager.isConnected && CastManager.tvState ? CastManager.tvState.duration : Player.duration;
+        if (duration > 0) {
+          const seekTo = (pct / 100) * duration;
+          if (CastManager.isConnected) CastManager.seekTo(seekTo);
+          else Player.seekTo(seekTo);
         }
       });
     }
@@ -451,9 +486,25 @@ class UIController {
     if (volumeSlider) {
       volumeSlider.addEventListener('input', (e) => {
         const vol = parseInt(e.target.value, 10);
-        Player.setVolume(vol);
-        this.updateVolumeSlider(vol);
+        if (CastManager.isConnected) {
+          CastManager.setVolume(vol);
+          this.updateVolumeSlider(vol);
+        } else {
+          Player.setVolume(vol);
+          this.updateVolumeSlider(vol);
+        }
       });
+    }
+
+    // Google Cast & TV Controller Buttons
+    const castBtn = document.getElementById('cast-connect-btn');
+    if (castBtn) {
+      castBtn.addEventListener('click', () => this.openCastConnectModal());
+    }
+
+    const castDisconnectBtn = document.getElementById('cast-banner-disconnect-btn');
+    if (castDisconnectBtn) {
+      castDisconnectBtn.addEventListener('click', () => CastManager.disconnect());
     }
 
     // Queue Panel Toggle
@@ -2137,7 +2188,9 @@ class UIController {
       card.addEventListener('click', (e) => {
         try {
           const track = JSON.parse(card.dataset.track);
-          if (Player.currentTrack && Player.currentTrack.id === track.id) {
+          if (CastManager.isConnected) {
+            CastManager.playTrack(track, trackList);
+          } else if (Player.currentTrack && Player.currentTrack.id === track.id) {
             Player.togglePlay();
           } else {
             Queue.playTrack(track, trackList);
@@ -2177,7 +2230,9 @@ class UIController {
           const track = JSON.parse(card.dataset.track);
           const playlistId = card.dataset.playlistId;
           const trackIndex = parseInt(card.dataset.trackIndex, 10);
-          if (Player.currentTrack && Player.currentTrack.id === track.id) {
+          if (CastManager.isConnected) {
+            CastManager.playTrack(track, trackList);
+          } else if (Player.currentTrack && Player.currentTrack.id === track.id) {
             Player.togglePlay();
           } else if (playlistId && !isNaN(trackIndex)) {
             Playlists.play(playlistId, trackIndex);
@@ -2206,7 +2261,9 @@ class UIController {
         if (e.target.closest('.song-row-artist')) return; // handled by artist link
         try {
           const track = JSON.parse(row.dataset.track);
-          if (Player.currentTrack && Player.currentTrack.id === track.id) {
+          if (CastManager.isConnected) {
+            CastManager.playTrack(track, trackList);
+          } else if (Player.currentTrack && Player.currentTrack.id === track.id) {
             Player.togglePlay();
           } else if (trackList && trackList.length > 0) {
             Queue.setQueue(trackList, rowIndex);
@@ -2414,7 +2471,16 @@ class UIController {
     const countEl = document.getElementById('queue-count');
     if (!list) return;
 
-    if (!queueData || Array.isArray(queueData)) {
+    if (CastManager.isConnected && CastManager.remoteState) {
+      if (!queueData || Array.isArray(queueData)) {
+        queueData = {
+          currentTrack: CastManager.remoteState.currentTrack,
+          userQueue: CastManager.remoteState.userQueue || [],
+          upcomingContext: CastManager.remoteState.queue || [],
+          isShuffle: CastManager.remoteState.isShuffle || false
+        };
+      }
+    } else if (!queueData || Array.isArray(queueData)) {
       queueData = Queue.getQueue();
     }
 
@@ -2501,7 +2567,11 @@ class UIController {
     // Bind User Queue actions
     document.getElementById('queue-clear-user-btn')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      Queue.clearUserQueue();
+      if (CastManager.isConnected) {
+        CastManager.clearQueue();
+      } else {
+        Queue.clearUserQueue();
+      }
       this.showToast('Fila manual borrada');
     });
 
@@ -2509,7 +2579,11 @@ class UIController {
       item.addEventListener('click', (e) => {
         if (e.target.closest('.queue-user-remove-btn')) return;
         const idx = parseInt(item.dataset.userIdx, 10);
-        Queue.playUserQueueIndex(idx);
+        if (CastManager.isConnected) {
+          CastManager.playQueueItem(idx);
+        } else {
+          Queue.playUserQueueIndex(idx);
+        }
       });
     });
 
@@ -2517,14 +2591,22 @@ class UIController {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const idx = parseInt(btn.dataset.userRemoveIdx, 10);
-        Queue.removeUserQueue(idx);
+        if (CastManager.isConnected) {
+          CastManager.removeFromQueue(idx);
+        } else {
+          Queue.removeUserQueue(idx);
+        }
       });
     });
 
     list.querySelectorAll('.context-queue-item').forEach(item => {
       item.addEventListener('click', () => {
         const idx = parseInt(item.dataset.contextIdx, 10);
-        Queue.playIndex(idx);
+        if (CastManager.isConnected) {
+          CastManager.playQueueItem(idx);
+        } else {
+          Queue.playIndex(idx);
+        }
       });
     });
   }
@@ -3844,8 +3926,15 @@ class UIController {
     const hasCD = CDCollection.hasCD(track.id);
 
     modalContent.innerHTML = `
-      <h2 class="modal-title" style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.title}</h2>
+      <h2 class="modal-title" style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHTML(track.title)}</h2>
       <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+        <button class="btn btn-secondary" id="action-play-on-tv" style="text-align: left; padding: 10px 14px; display: flex; align-items: center; gap: 8px; color: #34D399;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+            <polyline points="17 2 12 7 7 2"></polyline>
+          </svg>
+          <span>📺 Reproducir en BLUXWAVE TV</span>
+        </button>
         <button class="btn btn-secondary" id="action-queue-next" style="text-align: left; padding: 10px 14px;">Reproducir siguiente en fila</button>
         <button class="btn btn-secondary" id="action-toggle-cd" style="text-align: left; padding: 10px 14px;">${hasCD ? 'Quitar CD de mi colección' : 'Quedarme este CD (Colección)'}</button>
         ${fromPlaylistId ? `<button class="btn btn-secondary" id="action-remove-from-pl" style="text-align: left; padding: 10px 14px; color: var(--danger);">Quitar de esta carpeta</button>` : ''}
@@ -3854,7 +3943,7 @@ class UIController {
         ${playlists.length === 0 ? `<div style="font-size: 12px; color: var(--text-muted);">No tienes carpetas en tu colección.</div>` : `
           <div style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
             ${playlists.map(pl => `
-              <button class="btn btn-secondary action-add-to-pl-btn" data-pl-id="${pl.id}" style="text-align: left; font-size: 12.5px; padding: 8px 12px;">+ ${pl.name}</button>
+              <button class="btn btn-secondary action-add-to-pl-btn" data-pl-id="${pl.id}" style="text-align: left; font-size: 12.5px; padding: 8px 12px;">+ ${this.escapeHTML(pl.name)}</button>
             `).join('')}
           </div>
         `}
@@ -3867,6 +3956,16 @@ class UIController {
     modalBackdrop.classList.add('open');
 
     document.getElementById('modal-cancel-btn')?.addEventListener('click', () => this.closeModal());
+
+    document.getElementById('action-play-on-tv')?.addEventListener('click', () => {
+      this.closeModal();
+      if (CastManager.isConnected) {
+        CastManager.playTrack(track);
+        this.showToast(`Reproduciendo en ${CastManager.connectedDevice.name}`);
+      } else {
+        this.openCastConnectModal(track);
+      }
+    });
 
     document.getElementById('action-queue-next')?.addEventListener('click', () => {
       Queue.addNext(track);
@@ -3912,6 +4011,174 @@ class UIController {
   closeModal() {
     const modalBackdrop = document.getElementById('modal-backdrop');
     if (modalBackdrop) modalBackdrop.classList.remove('open');
+  }
+
+  // =========================================================================
+  // GOOGLE CAST & BLUXWAVE TV CONTROLLER METHODS
+  // =========================================================================
+
+  updateCastUI(status, device) {
+    const dot = document.getElementById('cast-status-dot');
+    const banner = document.getElementById('cast-device-banner');
+    const deviceNameEl = document.getElementById('cast-device-name');
+
+    if (status === 'CONNECTED') {
+      if (dot) {
+        dot.style.display = 'block';
+        dot.style.background = '#10B981';
+        dot.style.boxShadow = '0 0 6px #10B981';
+      }
+      if (banner) banner.style.display = 'flex';
+      if (deviceNameEl) deviceNameEl.textContent = device?.name || 'BLUXWAVE TV';
+      
+      // Pause local player on phone so only TV produces audio
+      Player.pause();
+      this.showToast(`📺 Conectado a ${device?.name || 'BLUXWAVE TV'}`);
+    } else if (status === 'CONNECTING') {
+      if (dot) {
+        dot.style.display = 'block';
+        dot.style.background = '#F59E0B';
+        dot.style.boxShadow = '0 0 6px #F59E0B';
+      }
+      this.showToast('Conectando a BLUXWAVE TV...');
+    } else {
+      if (dot) dot.style.display = 'none';
+      if (banner) banner.style.display = 'none';
+      if (status === 'DISCONNECTED') {
+        this.showToast('Desconectado de TV. Modo móvil activo.');
+      } else if (status === 'CONNECTION_ERROR') {
+        this.showToast('Error al conectar con la TV.');
+      }
+    }
+  }
+
+  syncTvPlaybackState(tvState) {
+    if (!tvState) return;
+
+    // 1. Current Track info
+    if (tvState.currentTrack) {
+      this.updateTrackInfo(tvState.currentTrack);
+    }
+
+    // 2. Play/Pause state
+    this.updatePlayPauseIcons(tvState.playing);
+
+    // 3. Progress bar
+    const duration = tvState.duration || 0;
+    const position = tvState.position || 0;
+    const progress = duration > 0 ? (position / duration) * 100 : 0;
+    this.updateProgress(position, duration, progress);
+
+    // 4. Volume slider
+    if (tvState.volume !== undefined) {
+      this.updateVolumeSlider(tvState.volume);
+    }
+
+    // 5. Update Queue if panel is open
+    if (this.isQueueOpen) {
+      this.renderQueuePanel({
+        currentTrack: tvState.currentTrack,
+        userQueue: tvState.userQueue || [],
+        upcomingContext: tvState.queue || [],
+        isShuffle: tvState.isShuffle || false
+      });
+    }
+  }
+
+  openCastConnectModal(pendingTrack = null) {
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalContent = document.getElementById('modal-content');
+    if (!modalBackdrop || !modalContent) return;
+
+    CastManager.updateDiscoveredDevices();
+    const isConnected = CastManager.isConnected;
+    const devices = CastManager.discoveredDevices;
+
+    let devicesHtml = '';
+    if (isConnected) {
+      devicesHtml = `
+        <div class="cast-device-item connected">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="cast-banner-dot"></span>
+            <div>
+              <div style="font-weight: 600; font-size: 14px; color: #FFFFFF;">${this.escapeHTML(CastManager.connectedDevice.name)}</div>
+              <div style="font-size: 11px; color: #10B981;">Conectado y listo para reproducir</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary" id="cast-modal-disconnect-btn" style="padding: 6px 12px; font-size: 12px; color: #EF4444;">Desconectar</button>
+        </div>
+      `;
+    } else {
+      devicesHtml = `
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Dispositivos BLUXWAVE TV detectados:</div>
+        ${devices.length === 0 ? `
+          <div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px;">
+            Buscando BLUXWAVE TV en tu red Wi-Fi...
+          </div>
+        ` : devices.map(d => `
+          <div class="cast-device-item" data-device-id="${d.id}" data-device-name="${this.escapeHTML(d.name)}" data-device-type="${d.type}">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+                <polyline points="17 2 12 7 7 2"></polyline>
+              </svg>
+              <div>
+                <div style="font-weight: 600; font-size: 14px; color: #FFFFFF;">${this.escapeHTML(d.name)}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${d.type}</div>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="padding: 6px 14px; font-size: 12px;">Conectar</button>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    modalContent.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+          <polyline points="17 2 12 7 7 2"></polyline>
+        </svg>
+        <h2 class="modal-title" style="margin: 0; font-size: 18px;">BLUXWAVE TV</h2>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.4;">
+        Tu celular actúa como control remoto mientras la música suena directamente en la TV con la máxima calidad.
+      </p>
+
+      <div style="margin-bottom: 20px;">
+        ${devicesHtml}
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="modal-cancel-btn">Cerrar</button>
+      </div>
+    `;
+
+    modalBackdrop.classList.add('open');
+
+    document.getElementById('modal-cancel-btn')?.addEventListener('click', () => this.closeModal());
+
+    document.getElementById('cast-modal-disconnect-btn')?.addEventListener('click', () => {
+      CastManager.disconnect();
+      this.closeModal();
+    });
+
+    modalContent.querySelectorAll('.cast-device-item[data-device-id]').forEach(item => {
+      item.addEventListener('click', () => {
+        const device = {
+          id: item.dataset.deviceId,
+          name: item.dataset.deviceName,
+          type: item.dataset.deviceType
+        };
+        CastManager.connectToDevice(device);
+        this.closeModal();
+        if (pendingTrack) {
+          setTimeout(() => {
+            CastManager.playTrack(pendingTrack);
+          }, 300);
+        }
+      });
+    });
   }
 }
 

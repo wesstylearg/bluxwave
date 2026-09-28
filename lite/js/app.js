@@ -1,5 +1,5 @@
 /**
- * app.js - Main Application Bootstrap for BluxWave
+ * app.js - Main Application Bootstrap for BluxWave Lite
  */
 
 import { UI } from './ui.js';
@@ -9,9 +9,11 @@ import { Auth } from './auth.js';
 import { CloudSync } from './sync.js';
 import { setupShortcuts } from './shortcuts.js';
 import { CURATED_TRACKS } from './youtube.js';
+import { CastManager } from './cast.js';
+import { MediaSessionManager } from './media-session.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-  console.log('[BluxWave] Initializing minimal desktop player...');
+  console.log('[BluxWave] Initializing BluxWave Lite with Cast Connect...');
 
   // Expose on window for handlers
   window.bluxUI = UI;
@@ -19,10 +21,12 @@ window.addEventListener('DOMContentLoaded', () => {
   window.bluxQueue = Queue;
   window.bluxAuth = Auth;
   window.bluxCloudSync = CloudSync;
+  window.bluxCast = CastManager;
 
-  // Initialize Auth, CloudSync, UI & Shortcuts
+  // Initialize Auth, CloudSync, MediaSession, UI & Shortcuts
   Auth.init();
   CloudSync.init();
+  MediaSessionManager.init();
   UI.init();
   setupShortcuts();
 
@@ -47,7 +51,10 @@ window.addEventListener('DOMContentLoaded', () => {
       Player.stopProgressTimer();
     } else {
       document.body.classList.remove('app-suspended');
-      if (Player.isPlaying) {
+      // If connected to TV, request fresh state on resume
+      if (CastManager.isConnected) {
+        CastManager.requestState();
+      } else if (Player.isPlaying) {
         if (Player.player && typeof Player.player.getCurrentTime === 'function') {
           try {
             Player.currentTime = Player.player.getCurrentTime() || 0;
@@ -70,4 +77,3 @@ window.addEventListener('DOMContentLoaded', () => {
 
   console.log('[BluxWave] Ready.');
 });
-

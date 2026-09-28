@@ -320,6 +320,40 @@
     height: 28px;
   }
 
+  /* 5b. Cast to TV Mobile Integration */
+  #cast-connect-btn {
+    width: 36px;
+    height: 36px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .cast-device-banner {
+    position: fixed !important;
+    bottom: calc(56px + 56px + env(safe-area-inset-bottom, 0px) + 10px) !important;
+    left: 8px !important;
+    right: 8px !important;
+    border-radius: 10px !important;
+    padding: 6px 12px !important;
+    z-index: 98 !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .cast-banner-info {
+    font-size: 11px !important;
+    gap: 7px !important;
+  }
+
+  .cast-banner-disconnect-btn {
+    padding: 3px 8px !important;
+    font-size: 10px !important;
+  }
+
   /* 6. Card Grids & Layout for Android Vertical */
   .card-grid {
     grid-template-columns: repeat(2, 1fr) !important;
