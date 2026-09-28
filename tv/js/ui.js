@@ -741,6 +741,14 @@ class UIController {
     if (targetView) {
       targetView.classList.add('active', 'view-animate-in');
       this.renderView(viewName);
+      setTimeout(() => {
+        if (window.bluxNav) {
+          const firstFocus = targetView.querySelector('.tv-focusable');
+          if (firstFocus) {
+            window.bluxNav.focusElement(firstFocus);
+          }
+        }
+      }, 150);
     }
   }
 
@@ -1548,14 +1556,14 @@ class UIController {
           </div>
         </div>
 
-        <!-- Atajos de Teclado -->
+        <!-- Controles del Control Remoto -->
         <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px;">
-          <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Atajos de Teclado</h3>
+          <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Control Remoto de TV</h3>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
-            <div><kbd style="background: var(--bg-surface-elevated); padding: 3px 8px; border-radius: 4px; font-family: monospace;">Espacio</kbd> : Reproducir / Pausar</div>
-            <div><kbd style="background: var(--bg-surface-elevated); padding: 3px 8px; border-radius: 4px; font-family: monospace;">← / →</kbd> : -5s / +5s</div>
-            <div><kbd style="background: var(--bg-surface-elevated); padding: 3px 8px; border-radius: 4px; font-family: monospace;">↑ / ↓</kbd> : Subir / Bajar Volumen</div>
-            <div><kbd style="background: var(--bg-surface-elevated); padding: 3px 8px; border-radius: 4px; font-family: monospace;">Esc</kbd> : Salir de Focus / Cerrar</div>
+            <div><span class="tv-key-badge">D-Pad (Flechas)</span> : Navegar elementos</div>
+            <div><span class="tv-key-badge">OK / Enter</span> : Seleccionar / Reproducir</div>
+            <div><span class="tv-key-badge">Volver / Esc</span> : Cerrar / Volver a Inicio</div>
+            <div><span class="tv-key-badge">Volumen</span> : Controlado por tu TV</div>
           </div>
         </div>
       </div>
@@ -1839,7 +1847,7 @@ class UIController {
   renderArtistCardHTML(artist) {
     const avatar = artist.avatar;
     return `
-      <div class="artist-card" data-artist-name="${this.escapeHTML(artist.name)}" data-channel-id="${artist.id || ''}">
+      <div class="artist-card tv-card tv-focusable" tabindex="0" data-artist-name="${this.escapeHTML(artist.name)}" data-channel-id="${artist.id || ''}">
         <div class="artist-avatar-wrapper">
           ${avatar ? `
             <img src="${avatar}" class="artist-avatar" alt="${this.escapeHTML(artist.name)}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'artist-avatar-fallback\\'><svg width=\\'36\\' height=\\'36\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'/><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'/></svg></div>';">
@@ -2101,7 +2109,7 @@ class UIController {
     }
 
     return `
-      <div class="playlist-card song-card" data-playlist-id="${pl.id}" title="${this.escapeHTML(pl.name)}">
+      <div class="playlist-card song-card tv-card tv-focusable" tabindex="0" data-playlist-id="${pl.id}" title="${this.escapeHTML(pl.name)}">
         <div class="playlist-card-cover-wrapper">
           ${coverHTML}
           ${songCount > 0 ? `
@@ -2130,7 +2138,7 @@ class UIController {
     const cleanArtistName = this.cleanArtist(track.artist);
 
     return `
-      <div class="song-card song-card-lite ${isCurrent ? 'is-playing' : ''}" data-track-id="${track.id}" data-track='${JSON.stringify(track).replace(/'/g, "&apos;")}'>
+      <div class="song-card song-card-lite tv-card tv-focusable ${isCurrent ? 'is-playing' : ''}" tabindex="0" data-track-id="${track.id}" data-track='${JSON.stringify(track).replace(/'/g, "&apos;")}'>
         <div class="song-card-cover-wrapper">
           <img src="${track.thumbnail}" alt="${this.escapeHTML(track.title)}" class="song-card-cover" loading="lazy" decoding="async">
           <button class="song-card-play-btn" title="Reproducir">
@@ -2153,7 +2161,7 @@ class UIController {
     const cleanArtistName = this.cleanArtist(track.artist);
 
     return `
-      <div class="compact-cd-card compact-cd-lite ${isCurrent ? 'is-playing' : ''}" data-track-id="${track.id}" data-track='${JSON.stringify(track).replace(/'/g, "&apos;")}' data-playlist-id="${playlistId || ''}" data-track-index="${idx}">
+      <div class="compact-cd-card compact-cd-lite tv-card tv-focusable ${isCurrent ? 'is-playing' : ''}" tabindex="0" data-track-id="${track.id}" data-track='${JSON.stringify(track).replace(/'/g, "&apos;")}' data-playlist-id="${playlistId || ''}" data-track-index="${idx}">
         <div class="compact-cd-cover-wrapper">
           <img src="${track.thumbnail}" alt="${this.escapeHTML(track.title)}" class="compact-cd-cover" loading="lazy" decoding="async">
           <button class="song-card-play-btn" title="Reproducir">
@@ -2174,7 +2182,7 @@ class UIController {
     const isCurrent = Player.currentTrack && Player.currentTrack.id === track.id;
     const cleanArtistName = this.cleanArtist(track.artist);
     return `
-      <div class="song-row ${isCurrent ? 'playing' : ''}" data-track-id="${track.id}" data-track='${JSON.stringify(track).replace(/'/g, "&apos;")}' data-playlist-id="${playlistId || ''}">
+      <div class="song-row tv-focusable ${isCurrent ? 'playing' : ''}" tabindex="0" data-track-id="${track.id}" data-track='${JSON.stringify(track).replace(/'/g, "&apos;")}' data-playlist-id="${playlistId || ''}">
         <div class="song-row-index">${idx + 1}</div>
         <img src="${track.thumbnail}" class="song-row-thumbnail" loading="lazy" decoding="async" alt="${this.escapeHTML(track.title)}">
         <div class="song-row-info">
@@ -2184,7 +2192,7 @@ class UIController {
         <div class="song-row-album" title="Ver perfil de ${this.escapeHTML(cleanArtistName)}">${this.escapeHTML(cleanArtistName)}</div>
         <div class="song-row-duration">${track.duration || '--:--'}</div>
         <div style="display: flex; justify-content: flex-end; gap: 4px;">
-          <button class="icon-btn song-menu-btn" title="Opciones" data-track-id="${track.id}" style="width: 28px; height: 28px;">
+          <button class="icon-btn song-menu-btn tv-focusable" tabindex="0" title="Opciones" data-track-id="${track.id}" style="width: 28px; height: 28px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="1"></circle>
               <circle cx="19" cy="12" r="1"></circle>
@@ -4007,10 +4015,10 @@ class UIController {
 
     modalContent.innerHTML = `
       <h2 class="modal-title">Crear nueva Carpeta</h2>
-      <input type="text" id="new-playlist-name-input" class="modal-input" placeholder="Nombre de la carpeta..." autofocus>
+      <input type="text" id="new-playlist-name-input" class="modal-input tv-focusable" placeholder="Nombre de la carpeta..." tabindex="0" autofocus>
       <div class="modal-actions">
-        <button class="btn btn-secondary" id="modal-cancel-btn">Cancelar</button>
-        <button class="btn btn-primary" id="modal-confirm-create-pl-btn">Crear</button>
+        <button class="btn btn-secondary tv-focusable" id="modal-cancel-btn" tabindex="0">Cancelar</button>
+        <button class="btn btn-primary tv-focusable" id="modal-confirm-create-pl-btn" tabindex="0">Crear</button>
       </div>
     `;
 
@@ -4023,6 +4031,9 @@ class UIController {
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && confirmBtn) confirmBtn.click();
       });
+      if (window.bluxNav) {
+        setTimeout(() => window.bluxNav.focusElement(input), 50);
+      }
     }
 
     const cancelBtn = document.getElementById('modal-cancel-btn');
@@ -4050,27 +4061,33 @@ class UIController {
     const hasCD = CDCollection.hasCD(track.id);
 
     modalContent.innerHTML = `
-      <h2 class="modal-title" style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.title}</h2>
+      <h2 class="modal-title" style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHTML(track.title)}</h2>
       <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-        <button class="btn btn-secondary" id="action-queue-next" style="text-align: left; padding: 10px 14px;">Reproducir siguiente en fila</button>
-        <button class="btn btn-secondary" id="action-toggle-cd" style="text-align: left; padding: 10px 14px;">${hasCD ? 'Quitar CD de mi colección' : 'Quedarme este CD (Colección)'}</button>
-        ${fromPlaylistId ? `<button class="btn btn-secondary" id="action-remove-from-pl" style="text-align: left; padding: 10px 14px; color: var(--danger);">Quitar de esta carpeta</button>` : ''}
+        <button class="btn btn-secondary tv-focusable" id="action-queue-next" tabindex="0" style="text-align: left; padding: 10px 14px;">Reproducir siguiente en fila</button>
+        <button class="btn btn-secondary tv-focusable" id="action-toggle-cd" tabindex="0" style="text-align: left; padding: 10px 14px;">${hasCD ? 'Quitar CD de mi colección' : 'Quedarme este CD (Colección)'}</button>
+        ${fromPlaylistId ? `<button class="btn btn-secondary tv-focusable" id="action-remove-from-pl" tabindex="0" style="text-align: left; padding: 10px 14px; color: var(--danger);">Quitar de esta carpeta</button>` : ''}
         
         <div style="margin-top: 10px; font-size: 13px; color: var(--text-secondary); font-weight: 500;">Añadir a una Carpeta:</div>
         ${playlists.length === 0 ? `<div style="font-size: 12px; color: var(--text-muted);">No tienes carpetas en tu colección.</div>` : `
           <div style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
             ${playlists.map(pl => `
-              <button class="btn btn-secondary action-add-to-pl-btn" data-pl-id="${pl.id}" style="text-align: left; font-size: 12.5px; padding: 8px 12px;">+ ${pl.name}</button>
+              <button class="btn btn-secondary action-add-to-pl-btn tv-focusable" tabindex="0" data-pl-id="${pl.id}" style="text-align: left; font-size: 12.5px; padding: 8px 12px;">+ ${this.escapeHTML(pl.name)}</button>
             `).join('')}
           </div>
         `}
       </div>
       <div class="modal-actions">
-        <button class="btn btn-secondary" id="modal-cancel-btn">Cerrar</button>
+        <button class="btn btn-secondary tv-focusable" id="modal-cancel-btn" tabindex="0">Cerrar</button>
       </div>
     `;
 
     modalBackdrop.classList.add('open');
+    if (window.bluxNav) {
+      setTimeout(() => {
+        const firstBtn = modalContent.querySelector('.tv-focusable');
+        if (firstBtn) window.bluxNav.focusElement(firstBtn);
+      }, 50);
+    }
 
     document.getElementById('modal-cancel-btn')?.addEventListener('click', () => this.closeModal());
 
@@ -4118,6 +4135,9 @@ class UIController {
   closeModal() {
     const modalBackdrop = document.getElementById('modal-backdrop');
     if (modalBackdrop) modalBackdrop.classList.remove('open');
+    if (window.bluxNav) {
+      setTimeout(() => window.bluxNav.focusFirstAvailable(), 50);
+    }
   }
 }
 

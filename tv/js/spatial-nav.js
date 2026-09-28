@@ -1,5 +1,12 @@
 /**
- * spatial-nav.js - Android TV Spatial & D-Pad Remote Navigation Engine
+ * spatial-nav.js - Android TV D-Pad Remote Navigation Engine
+ * 
+ * Replaces keyboard shortcuts with 100% remote-control optimized D-Pad navigation:
+ * - Up/Down/Left/Right: Spatial D-Pad movement across cards, carousels, and controls
+ * - OK / Enter: Select or play focused item
+ * - Back / Esc: Modal dismiss, view back to home, ambient queue close, or ambient exit
+ * - Dedicated TV media buttons: PlayPause, Next, Previous
+ * - ZERO shortcut volume/seeking collisions
  */
 
 import { Player } from './player.js';
@@ -8,7 +15,7 @@ export class SpatialNavigator {
   constructor(options = {}) {
     this.currentFocused = null;
     this.idleTimer = null;
-    this.idleDelay = 10000; // 10 seconds
+    this.idleDelay = 12000; // 12 seconds
     this.onIdle = options.onIdle || null;
     this.onUserActivity = options.onUserActivity || null;
     this.isAmbientActive = false;
@@ -20,21 +27,17 @@ export class SpatialNavigator {
 
   init() {
     window.addEventListener('keydown', this.handleKeyDown);
-    window.addEventListener('mousemove', this.resetIdleTimer);
-    window.addEventListener('mousedown', this.resetIdleTimer);
 
-    // Initial focus after DOM is ready
+    // Initial focus after DOM renders
     setTimeout(() => {
       this.focusFirstAvailable();
-    }, 500);
+    }, 400);
 
     this.startIdleTimer();
   }
 
   destroy() {
     window.removeEventListener('keydown', this.handleKeyDown);
-    window.removeEventListener('mousemove', this.resetIdleTimer);
-    window.removeEventListener('mousedown', this.resetIdleTimer);
     this.clearIdleTimer();
   }
 
@@ -62,7 +65,21 @@ export class SpatialNavigator {
   }
 
   getFocusableElements(container = document) {
-    // Only elements that are visible and have .tv-focusable or tabindex >= 0
+    // 1. If a modal is open, trap focus strictly inside the modal
+    const modal = document.getElementById('modal-backdrop');
+    if (modal && modal.classList.contains('open')) {
+      container = modal;
+    } else if (this.isAmbientActive) {
+      // 2. In Ambient mode, only allow focus inside the queue drawer if open
+      if (this.isQueueDrawerOpen) {
+        const drawer = document.getElementById('tv-ambient-queue-drawer');
+        if (drawer) container = drawer;
+      } else {
+        // Leanback ambient screen has no active focus ring
+        return [];
+      }
+    }
+
     const elements = Array.from(
       container.querySelectorAll('.tv-focusable, [tabindex="0"], button:not([disabled]), input:not([disabled])')
     );
@@ -85,10 +102,10 @@ export class SpatialNavigator {
     el.classList.add('is-focused');
     el.focus({ preventScroll: true });
 
-    // Scroll into view nicely
+    // Smooth centering for TV screen
     el.scrollIntoView({
       behavior: 'smooth',
-      block: 'center',
+      block: 'nearest',
       inline: 'center'
     });
   }
@@ -104,15 +121,84 @@ export class SpatialNavigator {
     this.resetIdleTimer();
 
     const key = e.key;
+    const code = e.code;
 
-    // Media and navigation keys
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape', 'Backspace'].includes(key)) {
-      // If user is typing in an active text input, let left/right move cursor unless at boundary
-      if (document.activeElement && document.activeElement.tagName === 'INPUT' && !['Escape', 'Enter'].includes(key)) {
-        if (key === 'ArrowUp' || key === 'ArrowDown') {
-          // Allow up/down to exit search input
+    // 1. Android TV Remote Dedicated Media Keys (hardware buttons)
+    if (key === 'MediaPlayPause' || code === 'MediaPlayPause') {
+      e.preventDefault();
+      Player.togglePlay();
+      return;
+    }
+    if (key === 'MediaTrackNext' || code === 'MediaTrackNext') {
+      e.preventDefault();
+      Player.next();
+      return;
+    }
+    if (key === 'MediaTrackPrevious' || code === 'MediaTrackPrevious') {
+      e.preventDefault();
+      Player.previous();
+      return;
+    }
+    if (key === 'MediaStop' || code === 'MediaStop') {
+      e.preventDefault();
+      Player.pause();
+      return;
+    }
+
+    // 2. Android TV Remote "Back" Button (Escape, Backspace, GoBack)
+    if (['Escape', 'Backspace', 'GoBack', 'BrowserBack'].includes(key)) {
+      if (this.isAmbientActive) {
+        e.preventDefault();
+        if (this.isQueueDrawerOpen) {
+          window.dispatchEvent(new CustomEvent('tv-ambient-hide-queue'));
         } else {
-          return;
+          window.dispatchEvent(new CustomEvent('tv-exit-ambient'));
+        }
+        return;
+      }
+
+      const modal = document.getElementById('modal-backdrop');
+      if (modal && modal.classList.contains('open')) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('tv-close-modal'));
+        return;
+      }
+
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+        e.preventDefault();
+        document.activeElement.blur();
+        this.focusFirstAvailable();
+        return;
+      }
+
+      // Return to Home view if in a sub-view
+      if (window.bluxUI && window.bluxUI.currentView && window.bluxUI.currentView !== 'home') {
+        e.preventDefault();
+        window.bluxUI.showView('home');
+        return;
+      }
+    }
+
+    // 3. Spacebar (Playback Toggle if not in text input)
+    if (key === ' ' || code === 'Space') {
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+        return; // Allow typing space in search
+      }
+      e.preventDefault();
+      Player.togglePlay();
+      return;
+    }
+
+    // 4. Directional D-Pad & Action Keys
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(key)) {
+      // In text input, allow down/up to leave input, but allow typing/submitting on Enter
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+        if (key === 'ArrowUp' || key === 'ArrowDown') {
+          document.activeElement.blur();
+        } else if (key === 'Enter') {
+          return; // Let Enter submit the input
+        } else {
+          return; // Left/Right moves text cursor
         }
       }
 
@@ -121,7 +207,7 @@ export class SpatialNavigator {
   }
 
   processDirectionalKey(key, e) {
-    // If in Ambient Mode
+    // A. Ambient TV Mode
     if (this.isAmbientActive) {
       if (this.isQueueDrawerOpen) {
         if (key === 'ArrowUp') {
@@ -130,9 +216,8 @@ export class SpatialNavigator {
           return;
         }
         if (key === 'ArrowDown') {
-          // Stay inside queue drawer
           e.preventDefault();
-          return;
+          return; // Stay in drawer
         }
         if (key === 'ArrowLeft' || key === 'ArrowRight') {
           e.preventDefault();
@@ -146,13 +231,8 @@ export class SpatialNavigator {
           }
           return;
         }
-        if (key === 'Escape' || key === 'Backspace') {
-          e.preventDefault();
-          window.dispatchEvent(new CustomEvent('tv-ambient-hide-queue'));
-          return;
-        }
       } else {
-        // Ambient mode with drawer closed
+        // Leanback ambient mode (drawer closed)
         if (key === 'ArrowDown') {
           e.preventDefault();
           window.dispatchEvent(new CustomEvent('tv-ambient-show-queue'));
@@ -173,24 +253,14 @@ export class SpatialNavigator {
           Player.previous();
           return;
         }
-        if (key === 'Escape' || key === 'Backspace') {
+        if (key === 'ArrowUp') {
           e.preventDefault();
-          window.dispatchEvent(new CustomEvent('tv-exit-ambient'));
           return;
         }
       }
     }
 
-    if (key === 'Escape' || key === 'Backspace') {
-      // Handle back button on remote
-      const modal = document.getElementById('modal-backdrop');
-      if (modal && modal.classList.contains('open')) {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent('tv-close-modal'));
-        return;
-      }
-    }
-
+    // B. Normal TV Navigation Mode
     if (key === 'Enter') {
       if (this.currentFocused) {
         e.preventDefault();
@@ -231,7 +301,7 @@ export class SpatialNavigator {
       }
     }
 
-    // Geometry-based spatial navigation for general layout
+    // Geometry-based spatial navigation between sections & rows
     const currentRect = this.currentFocused.getBoundingClientRect();
     let bestCandidate = null;
     let minDistance = Infinity;
@@ -246,29 +316,29 @@ export class SpatialNavigator {
 
       switch (direction) {
         case 'ArrowUp':
-          isCandidateInDirection = rect.bottom <= currentRect.top + 8;
+          isCandidateInDirection = rect.bottom <= currentRect.top + 12;
           primaryDiff = currentRect.top - rect.bottom;
           secondaryDiff = Math.abs((currentRect.left + currentRect.width / 2) - (rect.left + rect.width / 2));
           break;
         case 'ArrowDown':
-          isCandidateInDirection = rect.top >= currentRect.bottom - 8;
+          isCandidateInDirection = rect.top >= currentRect.bottom - 12;
           primaryDiff = rect.top - currentRect.bottom;
           secondaryDiff = Math.abs((currentRect.left + currentRect.width / 2) - (rect.left + rect.width / 2));
           break;
         case 'ArrowLeft':
-          isCandidateInDirection = rect.right <= currentRect.left + 8;
+          isCandidateInDirection = rect.right <= currentRect.left + 12;
           primaryDiff = currentRect.left - rect.right;
           secondaryDiff = Math.abs((currentRect.top + currentRect.height / 2) - (rect.top + rect.height / 2));
           break;
         case 'ArrowRight':
-          isCandidateInDirection = rect.left >= currentRect.right - 8;
+          isCandidateInDirection = rect.left >= currentRect.right - 12;
           primaryDiff = rect.left - currentRect.right;
           secondaryDiff = Math.abs((currentRect.top + currentRect.height / 2) - (rect.top + rect.height / 2));
           break;
       }
 
       if (isCandidateInDirection) {
-        // Weighted Manhattan distance prioritizing the primary direction
+        // Weighted distance prioritizing the primary directional axis
         const distance = primaryDiff * 1.0 + secondaryDiff * 2.2;
         if (distance < minDistance) {
           minDistance = distance;

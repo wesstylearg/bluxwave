@@ -450,3 +450,16 @@ body.tv-mode {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* 10-foot UI: Refined focus states for list rows & modal items */
+.song-row.tv-focusable.is-focused,
+.song-row.tv-focusable:focus {
+  transform: scale(1.02) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.modal-card .tv-focusable.is-focused,
+.modal-card .tv-focusable:focus {
+  transform: scale(1.03) !important;
+}
+
