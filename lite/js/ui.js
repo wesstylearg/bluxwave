@@ -2375,13 +2375,13 @@ class UIController {
     const focusFavBtn = document.getElementById('focus-fav-btn');
     if (!Player.currentTrack) return;
 
-    const hasCD = CDCollection.has(Player.currentTrack.id);
+    const hasCD = CDCollection.hasCD ? CDCollection.hasCD(Player.currentTrack.id) : (CDCollection.has ? CDCollection.has(Player.currentTrack.id) : false);
     if (favBtn) {
-      favBtn.classList.toggle('active', hasCD);
+      favBtn.classList.toggle('active', Boolean(hasCD));
       favBtn.title = hasCD ? 'En tu colección de CDs' : 'Quedarme el CD (Colección)';
     }
     if (focusFavBtn) {
-      focusFavBtn.classList.toggle('active', hasCD);
+      focusFavBtn.classList.toggle('active', Boolean(hasCD));
       focusFavBtn.title = hasCD ? 'En tu colección de CDs' : 'Quedarme el CD';
     }
   }

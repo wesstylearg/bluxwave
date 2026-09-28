@@ -29,6 +29,14 @@ class PlayerController {
   }
 
   init() {
+    const checkAndInit = () => {
+      if (window.YT && window.YT.Player) {
+        this.createPlayer();
+      } else {
+        setTimeout(checkAndInit, 250);
+      }
+    };
+
     // Check if YouTube API is already loaded
     if (!window.YT || !window.YT.Player) {
       const tag = document.createElement('script');
@@ -39,55 +47,69 @@ class PlayerController {
       window.onYouTubeIframeAPIReady = () => {
         this.createPlayer();
       };
+      // Backup polling for slow TVs
+      setTimeout(checkAndInit, 600);
     } else {
       this.createPlayer();
     }
   }
 
   createPlayer() {
-    const frameEl = document.getElementById('yt-player-frame');
-    if (!frameEl) return;
+    if (this.player) return;
 
-    this.player = new window.YT.Player('yt-player-frame', {
-      height: '100%',
-      width: '100%',
-      host: 'https://www.youtube-nocookie.com',
-      playerVars: {
-        autoplay: 0,
-        controls: 0,
-        disablekb: 1,
-        enablejsapi: 1,
-        fs: 0,
-        modestbranding: 1,
-        rel: 0,
-        iv_load_policy: 3,
-        playsinline: 1,
-        origin: window.location.origin && window.location.origin.startsWith('http') ? window.location.origin : undefined
-      },
-      events: {
-        onReady: (event) => {
-          this.isReady = true;
-          this.player.setVolume(this.volume);
-          console.log('[Player] YouTube IFrame API Ready');
+    const frameEl = document.getElementById('yt-player-frame') || document.getElementById('youtube-player');
+    if (!frameEl) {
+      setTimeout(() => this.createPlayer(), 200);
+      return;
+    }
 
-          if (this.pendingTrack) {
-            const track = this.pendingTrack;
-            this.pendingTrack = null;
-            this.loadTrack(track, true);
-          }
+    const targetId = frameEl.id;
+
+    try {
+      this.player = new window.YT.Player(targetId, {
+        height: '100%',
+        width: '100%',
+        host: 'https://www.youtube-nocookie.com',
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          disablekb: 1,
+          enablejsapi: 1,
+          fs: 0,
+          modestbranding: 1,
+          rel: 0,
+          iv_load_policy: 3,
+          playsinline: 1,
+          origin: window.location.origin && window.location.origin.startsWith('http') ? window.location.origin : undefined
         },
-        onStateChange: (event) => {
-          this.handleStateChange(event.data);
-        },
-        onError: (event) => {
-          console.warn('[Player] YouTube Player error code:', event.data);
-          this.emit('error', event.data);
-          if ([2, 5, 100, 101, 150].includes(event.data)) {
-            this.emit('unplayable', { track: this.currentTrack, code: event.data });
+        events: {
+          onReady: (event) => {
+            this.isReady = true;
+            this.player.setVolume(this.volume);
+            console.log('[Player] YouTube IFrame API Ready on Android TV');
+
+            if (this.pendingTrack) {
+              const track = this.pendingTrack;
+              this.pendingTrack = null;
+              this.loadTrack(track, true);
+            }
+          },
+          onStateChange: (event) => {
+            this.handleStateChange(event.data);
+          },
+          onError: (event) => {
+            console.warn('[Player] YouTube Player error code:', event.data);
+            this.emit('error', event.data);
+            if ([2, 5, 100, 101, 150].includes(event.data)) {
+              this.emit('unplayable', { track: this.currentTrack, code: event.data });
+            }
           }
         }
-      }
-    });
+      });
+    } catch (err) {
+      console.warn('[Player] Error instantiating YT.Player, retrying...', err);
+      setTimeout(() => this.createPlayer(), 500);
+    }
   }
 
   handleStateChange(state) {
@@ -173,6 +195,7 @@ class PlayerController {
           videoId: videoId,
           startSeconds: 0
         });
+        this.play();
       } else {
         this.player.cueVideoById({
           videoId: videoId,

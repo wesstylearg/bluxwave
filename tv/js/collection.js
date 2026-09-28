@@ -67,6 +67,10 @@ class CDCollectionManager {
     return this.collection.some(cd => String(cd.id) === String(id));
   }
 
+  has(id) {
+    return this.hasCD(id);
+  }
+
   toggleCD(track, metadata = {}) {
     if (!track || !track.id) return false;
     if (this.hasCD(track.id)) {

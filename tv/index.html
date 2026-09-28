@@ -84,7 +84,7 @@
     <!-- TV MINI PLAYER BAR (BOTTOM) -->
     <footer class="tv-mini-player">
       <div style="display: flex; align-items: center; gap: 16px; width: 320px;">
-        <img src="https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" id="player-cover" class="tv-focusable" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;" alt="" tabindex="0">
+        <img src="./assets/logo.png" id="player-cover" class="tv-focusable" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;" alt="" tabindex="0">
         <div style="min-width: 0; flex: 1;">
           <div id="player-title" style="font-size: 15px; font-weight: 700; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Selecciona una canción</div>
           <div id="player-artist" style="font-size: 13px; color: #A1A1AA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">BluxWave TV</div>
@@ -148,7 +148,7 @@
     <div class="tv-ambient-content">
       <!-- Big Artwork -->
       <div class="tv-ambient-cover-box">
-        <img src="https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" id="tv-ambient-cover" class="tv-ambient-cover" alt="" draggable="false">
+        <img src="./assets/logo.png" id="tv-ambient-cover" class="tv-ambient-cover" alt="" draggable="false">
       </div>
 
       <!-- Meta Info -->
@@ -216,9 +216,9 @@
   <!-- TOAST NOTIFICATION -->
   <div id="toast" class="toast"></div>
 
-  <!-- HIDDEN OFFICIAL YOUTUBE IFRAME DOCK -->
-  <div id="yt-player-dock" style="position: fixed; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; bottom: 0; left: 0;">
-    <div id="youtube-player"></div>
+  <!-- OFFICIAL YOUTUBE IFRAME DOCK (Off-screen dimensions to prevent Android TV background throttling) -->
+  <div id="yt-player-dock" style="position: fixed; width: 320px; height: 240px; bottom: -9999px; left: -9999px; pointer-events: none; z-index: -1;">
+    <div id="yt-player-frame"></div>
   </div>
 
   <script type="module" src="./js/app.js"></script>
