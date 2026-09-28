@@ -26,26 +26,19 @@ export function setupShortcuts() {
         Player.togglePlay();
         break;
 
-      case 'ArrowLeft':
+      case 'MediaPlayPause':
         e.preventDefault();
-        Player.seekBy(-5);
+        Player.togglePlay();
         break;
 
-      case 'ArrowRight':
+      case 'MediaTrackNext':
         e.preventDefault();
-        Player.seekBy(5);
+        Player.next();
         break;
 
-      case 'ArrowUp':
+      case 'MediaTrackPrevious':
         e.preventDefault();
-        Player.changeVolume(5);
-        UI.updateVolumeSlider(Player.volume);
-        break;
-
-      case 'ArrowDown':
-        e.preventDefault();
-        Player.changeVolume(-5);
-        UI.updateVolumeSlider(Player.volume);
+        Player.previous();
         break;
 
       case 'Escape':

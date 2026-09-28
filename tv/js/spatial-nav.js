@@ -2,6 +2,8 @@
  * spatial-nav.js - Android TV Spatial & D-Pad Remote Navigation Engine
  */
 
+import { Player } from './player.js';
+
 export class SpatialNavigator {
   constructor(options = {}) {
     this.currentFocused = null;
@@ -121,26 +123,61 @@ export class SpatialNavigator {
   processDirectionalKey(key, e) {
     // If in Ambient Mode
     if (this.isAmbientActive) {
-      if (key === 'ArrowDown') {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent('tv-ambient-show-queue'));
-        return;
-      }
-      if (key === 'ArrowUp') {
-        if (this.isQueueDrawerOpen) {
+      if (this.isQueueDrawerOpen) {
+        if (key === 'ArrowUp') {
           e.preventDefault();
           window.dispatchEvent(new CustomEvent('tv-ambient-hide-queue'));
           return;
         }
-      }
-      if (key === 'Escape' || key === 'Backspace') {
-        e.preventDefault();
-        if (this.isQueueDrawerOpen) {
-          window.dispatchEvent(new CustomEvent('tv-ambient-hide-queue'));
-        } else {
-          window.dispatchEvent(new CustomEvent('tv-exit-ambient'));
+        if (key === 'ArrowDown') {
+          // Stay inside queue drawer
+          e.preventDefault();
+          return;
         }
-        return;
+        if (key === 'ArrowLeft' || key === 'ArrowRight') {
+          e.preventDefault();
+          this.navigateDirection(key);
+          return;
+        }
+        if (key === 'Enter') {
+          if (this.currentFocused) {
+            e.preventDefault();
+            this.currentFocused.click();
+          }
+          return;
+        }
+        if (key === 'Escape' || key === 'Backspace') {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent('tv-ambient-hide-queue'));
+          return;
+        }
+      } else {
+        // Ambient mode with drawer closed
+        if (key === 'ArrowDown') {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent('tv-ambient-show-queue'));
+          return;
+        }
+        if (key === 'Enter') {
+          e.preventDefault();
+          Player.togglePlay();
+          return;
+        }
+        if (key === 'ArrowRight') {
+          e.preventDefault();
+          Player.next();
+          return;
+        }
+        if (key === 'ArrowLeft') {
+          e.preventDefault();
+          Player.previous();
+          return;
+        }
+        if (key === 'Escape' || key === 'Backspace') {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent('tv-exit-ambient'));
+          return;
+        }
       }
     }
 
@@ -177,8 +214,8 @@ export class SpatialNavigator {
       return;
     }
 
-    // Check if moving within a horizontal carousel track
-    const currentTrack = this.currentFocused.closest('.tv-carousel-track');
+    // Check if moving within a horizontal carousel track or queue drawer track
+    const currentTrack = this.currentFocused.closest('.tv-carousel-track, .tv-drawer-track');
     if (currentTrack) {
       const itemsInTrack = Array.from(currentTrack.querySelectorAll('.tv-focusable'));
       const currentIndex = itemsInTrack.indexOf(this.currentFocused);

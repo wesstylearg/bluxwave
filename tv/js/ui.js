@@ -2730,6 +2730,11 @@ class UIController {
 
     if (window.bluxNav) {
       window.bluxNav.isQueueDrawerOpen = this.isAmbientQueueOpen;
+      if (!this.isAmbientQueueOpen && window.bluxNav.currentFocused) {
+        window.bluxNav.currentFocused.blur();
+        window.bluxNav.currentFocused.classList.remove('is-focused');
+        window.bluxNav.currentFocused = null;
+      }
     }
 
     if (this.isAmbientQueueOpen) {
