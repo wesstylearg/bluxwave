@@ -68,9 +68,9 @@ class UIController {
 
   getUserDisplayName() {
     const custom = Config.getUsername();
-    if (custom) return custom;
+    if (custom && custom !== 'Usuario' && custom !== 'Blux') return custom;
     const user = Auth.getUser();
-    if (user && user.name) return user.name;
+    if (user && user.name && user.name !== 'Usuario' && user.name !== 'Blux') return user.name;
     return 'Valen';
   }
 
@@ -1995,81 +1995,53 @@ class UIController {
   }
 
   renderPlaylistCardHTML(pl) {
-    const cover1 = pl.customCover || (pl.songs && pl.songs[0] && pl.songs[0].thumbnail) || null;
-    const cover2 = (pl.songs && pl.songs[1] && pl.songs[1].thumbnail) || null;
     const songCount = pl.songs ? pl.songs.length : 0;
+    const customCover = pl.customCover;
+    let coverHTML = '';
+
+    if (customCover) {
+      coverHTML = `<img src="${customCover}" alt="${this.escapeHTML(pl.name)}" class="playlist-card-cover" loading="lazy" decoding="async">`;
+    } else if (songCount >= 4) {
+      coverHTML = `
+        <div class="playlist-mosaic-grid">
+          <img src="${pl.songs[0].thumbnail}" alt="" loading="lazy">
+          <img src="${pl.songs[1].thumbnail}" alt="" loading="lazy">
+          <img src="${pl.songs[2].thumbnail}" alt="" loading="lazy">
+          <img src="${pl.songs[3].thumbnail}" alt="" loading="lazy">
+        </div>
+      `;
+    } else if (songCount > 0 && pl.songs[0].thumbnail) {
+      coverHTML = `<img src="${pl.songs[0].thumbnail}" alt="${this.escapeHTML(pl.name)}" class="playlist-card-cover" loading="lazy" decoding="async">`;
+    } else {
+      coverHTML = `
+        <div class="playlist-empty-cover">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#71717A" stroke-width="1.5">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+        </div>
+      `;
+    }
 
     return `
-      <div class="cd-wallet-card song-card" data-playlist-id="${pl.id}" title="${this.escapeHTML(pl.name)}">
-        <!-- 3D CD Libreta / Booklet Stage (Incline Perspective) -->
-        <div class="cd-libreta-stage">
-          <div class="cd-libreta-3d">
-            <!-- Zippered Base Shell (Open Binder Tray) -->
-            <div class="libreta-casing-base">
-              <div class="libreta-stitch-rim"></div>
-              <div class="libreta-zipper-teeth"></div>
-              <div class="libreta-zipper-pull-hinge"></div>
-              <div class="libreta-center-seam"></div>
-            </div>
-
-            <!-- Page 0: Bottom base sleeve under the turned page -->
-            <div class="libreta-page-under">
-              <div class="libreta-under-cloth"></div>
-            </div>
-
-            <!-- Page 2: Right Flat Sleeve with Disc #2 -->
-            <div class="libreta-page-flat">
-              <div class="cd-silver-disc">
-                <div class="cd-silver-specular"></div>
-                <div class="cd-silver-grooves"></div>
-                <div class="cd-silver-label">
-                  ${cover2 ? `
-                    <img src="${cover2}" alt="" loading="lazy">
-                  ` : `
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #18181b; color: #d4d4d8; font-size: 8px; font-weight: 600; text-align: center; padding: 2px; border: 1px solid rgba(255,255,255,0.15);">
-                      BLUX
-                    </div>
-                  `}
-                </div>
-                <div class="cd-silver-hole"></div>
-              </div>
-              <!-- Frosted Vinyl Pocket with Top Insertion Slot -->
-              <div class="libreta-vinyl-pocket"></div>
-              <div class="libreta-sleeve-notch"></div>
-            </div>
-
-            <!-- Page 1: Raised / Turned Page Standing in 3D Perspective with Disc #1 -->
-            <div class="libreta-page-lifted">
-              <div class="cd-silver-disc">
-                <div class="cd-silver-specular"></div>
-                <div class="cd-silver-grooves"></div>
-                <div class="cd-silver-label">
-                  ${cover1 ? `
-                    <img src="${cover1}" alt="" loading="lazy">
-                  ` : `
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #18181b; color: #e4e4e7; font-size: 9px; font-weight: 700; border: 1px solid rgba(255,255,255,0.15);">
-                      CD 1
-                    </div>
-                  `}
-                </div>
-                <div class="cd-silver-hole"></div>
-              </div>
-              <!-- Frosted Vinyl Pocket with Top Insertion Slot -->
-              <div class="libreta-vinyl-pocket"></div>
-              <div class="libreta-sleeve-notch"></div>
-            </div>
-          </div>
-          <!-- Ground Shadow -->
-          <div class="libreta-floor-shadow"></div>
+      <div class="playlist-card song-card" data-playlist-id="${pl.id}" title="${this.escapeHTML(pl.name)}">
+        <div class="playlist-card-cover-wrapper">
+          ${coverHTML}
+          ${songCount > 0 ? `
+            <button class="playlist-card-play-btn" data-play-playlist-id="${pl.id}" title="Reproducir libreta">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </button>
+          ` : ''}
         </div>
-
-        <!-- Metadata below (Clean: NO "PORTA CDS" tag) -->
-        <div class="cd-wallet-info">
-          <div class="cd-wallet-title">${this.escapeHTML(pl.name)}</div>
-          <div class="cd-wallet-meta">
+        <div class="playlist-card-info">
+          <div class="playlist-card-title">${this.escapeHTML(pl.name)}</div>
+          <div class="playlist-card-meta">
             <span>${songCount} ${songCount === 1 ? 'canción' : 'canciones'}</span>
             <span>•</span>
-            <span>${this.escapeHTML(this.getUserDisplayName())}</span>
+            <span>Libreta</span>
           </div>
         </div>
       </div>
@@ -2185,9 +2157,15 @@ class UIController {
     });
 
     // Play on playlist card click
-    container.querySelectorAll('.song-card[data-playlist-id], .cd-wallet-card[data-playlist-id]').forEach(card => {
-      card.addEventListener('click', () => {
+    container.querySelectorAll('.song-card[data-playlist-id], .playlist-card[data-playlist-id]').forEach(card => {
+      card.addEventListener('click', (e) => {
         const id = card.dataset.playlistId;
+        const playBtn = e.target.closest('[data-play-playlist-id]');
+        if (playBtn) {
+          e.stopPropagation();
+          Playlists.play(id, 0);
+          return;
+        }
         this.renderPlaylistView(id);
       });
     });

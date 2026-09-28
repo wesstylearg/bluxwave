@@ -102,7 +102,7 @@
   }
 
   /* 3. Main Content Area */
-  main.app-main {
+  main.main-content, main.app-main {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
@@ -353,32 +353,38 @@
     font-size: 11.5px !important;
   }
 
-  /* 7. 3D CD Shelf on Mobile */
+  /* 7. 2D CD Shelf on Mobile */
   .cd-shelf-container {
-    margin-bottom: 28px !important;
+    margin-bottom: 24px !important;
   }
 
   .cd-shelf-stage {
-    padding: 46px 12px 18px 12px !important;
-    touch-action: pan-x pan-y !important;
+    padding: 0 !important;
+    touch-action: pan-y !important;
+  }
+
+  .cd-shelf-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
   }
 
   .shelf-cd-item {
-    width: 118px !important;
-    margin-left: -50px !important;
-  }
-
-  .shelf-cd-item:hover {
-    margin-right: 58px !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   /* 8. Focus Mode for Android Vertical (Bug-free exit & full responsiveness) */
-  .focus-overlay {
+  .focus-overlay, .focus-overlay-lite {
+    display: none !important;
     padding: calc(14px + env(safe-area-inset-top, 0px)) 12px calc(18px + env(safe-area-inset-bottom, 12px)) 12px !important;
-    display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
     z-index: 99999 !important;
+  }
+
+  .focus-overlay.active, .focus-overlay-lite.active {
+    display: flex !important;
   }
 
   .focus-top-bar {

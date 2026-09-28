@@ -30,7 +30,7 @@ class ConfigManager {
       this.settings.youtubeApiKey = DEFAULT_YOUTUBE_API_KEY;
     }
 
-    if (!this.settings.customUsername) {
+    if (!this.settings.customUsername || this.settings.customUsername === 'Usuario' || this.settings.customUsername === 'Blux') {
       this.settings.customUsername = 'Valen';
     }
 
@@ -72,7 +72,9 @@ class ConfigManager {
   }
 
   getUsername() {
-    return this.settings.customUsername || '';
+    const name = this.settings.customUsername;
+    if (!name || name === 'Usuario' || name === 'Blux') return 'Valen';
+    return name;
   }
 
   setUsername(name) {
