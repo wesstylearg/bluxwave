@@ -1,0 +1,451 @@
+/**
+ * tv.css - Android TV & Smart TV 10-foot UI Stylesheet
+ */
+
+:root {
+  --tv-focus-border: #FFFFFF;
+  --tv-focus-glow: rgba(255, 255, 255, 0.4);
+  --tv-card-w: 220px;
+  --tv-card-h: 220px;
+}
+
+/* Base TV Body */
+body.tv-mode {
+  font-size: 16px;
+  background-color: #070709;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+  cursor: default;
+}
+
+/* 10-foot UI: High-contrast focus state for remote D-Pad */
+.tv-focusable {
+  outline: none !important;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 180ms ease,
+              background 180ms ease !important;
+}
+
+.tv-focusable:focus,
+.tv-focusable.is-focused {
+  outline: 3px solid var(--tv-focus-border) !important;
+  outline-offset: 3px !important;
+  transform: scale(1.08) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.95), 0 0 24px var(--tv-focus-glow) !important;
+  z-index: 100 !important;
+}
+
+/* TV Header */
+.tv-header {
+  height: 68px;
+  background: #0d0d12;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  z-index: 50;
+}
+
+.tv-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tv-brand-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+}
+
+.tv-brand-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.tv-tag {
+  background: #E11D48;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  margin-left: 6px;
+}
+
+.tv-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tv-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #A1A1AA;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.tv-nav-btn.active {
+  background: #FFFFFF;
+  color: #000000;
+}
+
+.tv-nav-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Main Content Area */
+.tv-main-content {
+  height: calc(100vh - 68px - 84px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 36px 48px 36px;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.tv-main-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* ==========================================================================
+   HORIZONTAL CAROUSELS (NETFLIX / YOUTUBE LEANBACK STYLE)
+   ========================================================================== */
+.tv-section {
+  margin-bottom: 38px;
+}
+
+.tv-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
+.tv-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.4px;
+}
+
+.tv-section-subtitle {
+  font-size: 13.5px;
+  color: #71717A;
+}
+
+.tv-carousel-track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  padding: 12px 6px 20px 6px;
+}
+
+.tv-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* TV Song Card */
+.tv-card {
+  flex: 0 0 200px;
+  width: 200px;
+  background: #131317;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  position: relative;
+}
+
+.tv-card-cover-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #18181f;
+  margin-bottom: 10px;
+}
+
+.tv-card-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tv-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFFFFF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.tv-card-subtitle {
+  font-size: 12px;
+  color: #A1A1AA;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mini Player Bar */
+.tv-mini-player {
+  height: 84px;
+  background: #0d0d12;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  z-index: 50;
+}
+
+/* ==========================================================================
+   AMBIENT LIVING ROOM / TV NOW-PLAYING MODE
+   ========================================================================== */
+.tv-ambient-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #050507;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px 60px;
+  overflow: hidden;
+  transition: opacity 300ms ease;
+}
+
+.tv-ambient-overlay.active {
+  display: flex;
+}
+
+.tv-ambient-bg {
+  position: absolute;
+  inset: -40px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(60px) brightness(0.22);
+  z-index: 0;
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+.tv-ambient-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  height: 100%;
+}
+
+.tv-ambient-cover-box {
+  width: 380px;
+  height: 380px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #141418;
+}
+
+.tv-ambient-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tv-ambient-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tv-ambient-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #10B981;
+  margin-bottom: 14px;
+}
+
+.tv-ambient-title {
+  font-size: 42px;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tv-ambient-artist {
+  font-size: 24px;
+  color: #A1A1AA;
+  font-weight: 500;
+  margin-bottom: 32px;
+}
+
+/* TV Ambient Progress */
+.tv-ambient-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 600px;
+  margin-bottom: 28px;
+}
+
+.tv-ambient-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.tv-ambient-fill {
+  height: 100%;
+  background: #FFFFFF;
+  width: 0%;
+  border-radius: 999px;
+}
+
+.tv-ambient-time {
+  font-size: 15px;
+  font-weight: 600;
+  color: #A1A1AA;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ambient Hint Bar */
+.tv-ambient-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #71717A;
+}
+
+.tv-key-badge {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ==========================================================================
+   BOTTOM QUEUE DRAWER (DESPLEGABLE CON FLECHA ABAJO ↓)
+   ========================================================================== */
+.tv-queue-drawer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #0f0f15;
+  border-top: 2px solid rgba(255, 255, 255, 0.16);
+  padding: 24px 48px 36px 48px;
+  transform: translateY(105%);
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+  box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.95);
+}
+
+.tv-queue-drawer.open {
+  transform: translateY(0%);
+}
+
+.tv-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.tv-drawer-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tv-drawer-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 8px 4px 16px 4px;
+}
+
+.tv-drawer-track::-webkit-scrollbar {
+  display: none;
+}
+
+.tv-queue-item {
+  flex: 0 0 180px;
+  width: 180px;
+  background: #181820;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.tv-queue-item.current {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.tv-add-more-btn {
+  flex: 0 0 160px;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}

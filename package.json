@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build demo --base ./ --outDir ../dist/demo --emptyOutDir && vite build lite --base ./ --outDir ../dist/lite --emptyOutDir",
+    "build": "vite build && vite build demo --base ./ --outDir ../dist/demo --emptyOutDir && vite build lite --base ./ --outDir ../dist/lite --emptyOutDir && vite build tv --base ./ --outDir ../dist/tv --emptyOutDir",
     "build:app": "vite build",
     "build:demo": "vite build demo --base ./ --outDir ../dist/demo --emptyOutDir",
     "build:lite": "vite build lite --base ./ --outDir ../dist/lite --emptyOutDir",
+    "build:tv": "vite build tv --base ./ --outDir ../dist/tv --emptyOutDir",
     "preview": "vite preview",
     "demo": "vite demo",
     "lite": "vite lite",
+    "tv": "vite tv",
     "tauri": "tauri"
   },
   "devDependencies": {

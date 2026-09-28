@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>BluxWave TV</title>
+  <link rel="icon" type="image/png" href="./assets/logo.png">
+  <link rel="shortcut icon" href="./assets/logo.png">
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/tv.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="tv-mode">
+
+  <div id="app-container">
+    <!-- TV TOP NAVIGATION BAR -->
+    <header class="tv-header" id="tv-header">
+      <!-- Left: App Brand & Nav Buttons -->
+      <div class="tv-brand" data-nav="home">
+        <img src="./assets/logo.png" alt="BluxWave" class="tv-brand-logo">
+        <span class="tv-brand-title">BluxWave <span class="tv-tag">TV</span></span>
+      </div>
+
+      <nav class="tv-nav">
+        <button class="tv-nav-btn tv-focusable active nav-item" data-nav="home" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>Inicio</span>
+        </button>
+
+        <button class="tv-nav-btn tv-focusable nav-item" data-nav="library" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span>Biblioteca</span>
+        </button>
+
+        <button class="tv-nav-btn tv-focusable nav-item" data-nav="history" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Historial</span>
+        </button>
+
+        <button class="tv-nav-btn tv-focusable nav-item" data-nav="settings" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Ajustes</span>
+        </button>
+      </nav>
+
+      <!-- Center-Right: Search Input -->
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="mac-search-box search-box" style="width: 280px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="global-search-input" class="search-input mac-search-input tv-focusable" placeholder="Buscar canciones, artistas..." tabindex="0">
+        </div>
+
+        <div id="topbar-user-badge" class="tv-focusable" tabindex="0" style="padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,0.08); font-size: 13.5px; font-weight: 600;">Valen</div>
+      </div>
+    </header>
+
+    <!-- TV MAIN SCROLLABLE CONTENT (10-FOOT LEANBACK CAROUSELS) -->
+    <main class="tv-main-content main-content" id="tv-main-content">
+      <div id="view-home" class="view-container active"></div>
+      <div id="view-library" class="view-container"></div>
+      <div id="view-history" class="view-container"></div>
+      <div id="view-playlist" class="view-container"></div>
+      <div id="view-search" class="view-container"></div>
+      <div id="view-artist" class="view-container"></div>
+      <div id="view-settings" class="view-container"></div>
+    </main>
+
+    <!-- TV MINI PLAYER BAR (BOTTOM) -->
+    <footer class="tv-mini-player">
+      <div style="display: flex; align-items: center; gap: 16px; width: 320px;">
+        <img src="https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" id="player-cover" class="tv-focusable" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;" alt="" tabindex="0">
+        <div style="min-width: 0; flex: 1;">
+          <div id="player-title" style="font-size: 15px; font-weight: 700; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Selecciona una canción</div>
+          <div id="player-artist" style="font-size: 13px; color: #A1A1AA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">BluxWave TV</div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button class="tv-focusable icon-btn" id="player-shuffle-btn" title="Aleatorio" tabindex="0" style="width: 44px; height: 44px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+            <line x1="4" y1="4" x2="9" y2="9"></line>
+          </svg>
+        </button>
+
+        <button class="tv-focusable icon-btn" id="player-prev-btn" title="Anterior" tabindex="0" style="width: 44px; height: 44px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="19 20 9 12 19 4 19 20"></polygon>
+            <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2.5"></line>
+          </svg>
+        </button>
+
+        <button class="tv-focusable btn-primary" id="player-play-btn" title="Reproducir / Pausar" tabindex="0" style="width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #FFFFFF; color: #000000;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </button>
+
+        <button class="tv-focusable icon-btn" id="player-next-btn" title="Siguiente" tabindex="0" style="width: 44px; height: 44px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+            <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5"></line>
+          </svg>
+        </button>
+
+        <button class="tv-focusable icon-btn" id="player-fav-btn" title="Quedarme el CD" tabindex="0" style="width: 44px; height: 44px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right: Ambient Mode Trigger -->
+      <button class="tv-focusable tv-nav-btn" id="tv-open-ambient-btn" tabindex="0" style="display: flex; align-items: center; gap: 8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+          <polyline points="17 2 12 7 7 2"></polyline>
+        </svg>
+        <span>Modo TV (Ambient)</span>
+      </button>
+    </footer>
+  </div>
+
+  <!-- TV AMBIENT FULLSCREEN LIVING ROOM MODE -->
+  <div class="tv-ambient-overlay" id="tv-ambient-overlay">
+    <div class="tv-ambient-bg" id="tv-ambient-bg"></div>
+
+    <div class="tv-ambient-content">
+      <!-- Big Artwork -->
+      <div class="tv-ambient-cover-box">
+        <img src="https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" id="tv-ambient-cover" class="tv-ambient-cover" alt="" draggable="false">
+      </div>
+
+      <!-- Meta Info -->
+      <div class="tv-ambient-meta">
+        <div class="tv-ambient-badge">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+          REPRODUCIENDO EN SMART TV
+        </div>
+
+        <h1 class="tv-ambient-title" id="tv-ambient-title">Selecciona una canción</h1>
+        <div class="tv-ambient-artist" id="tv-ambient-artist">BluxWave TV</div>
+
+        <!-- Progress Bar -->
+        <div class="tv-ambient-progress-wrap">
+          <span class="tv-ambient-time" id="tv-ambient-time-cur">00:00</span>
+          <div class="tv-ambient-bar">
+            <div class="tv-ambient-fill" id="tv-ambient-bar-fill"></div>
+          </div>
+          <span class="tv-ambient-time" id="tv-ambient-time-dur">00:00</span>
+        </div>
+
+        <!-- TV Remote Hint -->
+        <div class="tv-ambient-hint">
+          <span>Presiona <span class="tv-key-badge">↓ Abajo</span> para ver la fila y añadir temas</span>
+          <span>•</span>
+          <span><span class="tv-key-badge">OK / Enter</span> Pausa</span>
+          <span>•</span>
+          <span><span class="tv-key-badge">Volver / Esc</span> Salir</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM QUEUE DRAWER (DESPLEGABLE CON FLECHA ABAJO ↓) -->
+    <div class="tv-queue-drawer" id="tv-ambient-queue-drawer">
+      <div class="tv-drawer-header">
+        <div class="tv-drawer-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          <span>A continuación en tu fila</span>
+          <span id="tv-queue-count" style="font-size: 13.5px; color: #A1A1AA; font-weight: normal;">(0 canciones)</span>
+        </div>
+        <div style="font-size: 13px; color: #71717A;">
+          Presiona <span class="tv-key-badge">↑ Arriba</span> o <span class="tv-key-badge">Volver</span> para cerrar
+        </div>
+      </div>
+
+      <!-- Horizontal Queue Carousel -->
+      <div class="tv-drawer-track" id="tv-ambient-queue-track">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS BACKDROP -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal-card" id="modal-content"></div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast"></div>
+
+  <!-- HIDDEN OFFICIAL YOUTUBE IFRAME DOCK -->
+  <div id="yt-player-dock" style="position: fixed; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; bottom: 0; left: 0;">
+    <div id="youtube-player"></div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
