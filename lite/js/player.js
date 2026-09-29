@@ -28,7 +28,63 @@ class PlayerController {
     this.init();
   }
 
+  isNative() {
+    return typeof window.AndroidBridge !== 'undefined' &&
+           typeof window.AndroidBridge.isNative === 'function' &&
+           window.AndroidBridge.isNative();
+  }
+
+  setupNativeBridge() {
+    window.bluxNativeBridge = {
+      onNativeEvent: (eventName, data) => {
+        if (eventName === 'stateChange') {
+          this.isPlaying = !!data.isPlaying;
+          if (this.isPlaying) {
+            this.startProgressTimer();
+          } else {
+            this.stopProgressTimer();
+          }
+          this.emit('stateChange', { isPlaying: this.isPlaying, state: data.playbackState });
+          if (data.playbackState === 4) { // Media3 Player.STATE_ENDED
+            this.emit('trackEnd', this.currentTrack);
+          }
+        } else if (eventName === 'trackChange') {
+          if (data && data.id) {
+            this.currentTrack = {
+              id: data.id,
+              title: data.title || (this.currentTrack ? this.currentTrack.title : 'Canción'),
+              artist: data.artist || (this.currentTrack ? this.currentTrack.artist : 'Artista'),
+              thumbnail: data.thumbnail || (this.currentTrack ? this.currentTrack.thumbnail : '')
+            };
+            this.emit('trackChange', this.currentTrack);
+          }
+        } else if (eventName === 'timeUpdate') {
+          this.currentTime = data.currentTime || 0;
+          this.duration = data.duration || this.duration || 0;
+          this.emit('timeUpdate', {
+            currentTime: this.currentTime,
+            duration: this.duration,
+            progress: this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0
+          });
+        } else if (eventName === 'castChange') {
+          window.dispatchEvent(new CustomEvent('blux:nativeCastChange', { detail: data }));
+        }
+      }
+    };
+  }
+
   init() {
+    this.setupNativeBridge();
+    window.addEventListener('blux:nativeReady', () => {
+      this.setupNativeBridge();
+    });
+
+    if (this.isNative()) {
+      this.isReady = true;
+      console.log('[Player] Native Android Media3 engine ready');
+      return;
+    }
+
     // Check if YouTube API is already loaded
     if (!window.YT || !window.YT.Player) {
       const tag = document.createElement('script');
@@ -154,6 +210,14 @@ class PlayerController {
       console.warn('[Player] Error in trackChange listener:', e);
     }
 
+    if (this.isNative()) {
+      try {
+        window.AndroidBridge.playTrack(JSON.stringify(track));
+      } catch (err) {
+        console.error('[Player] Error sending track to AndroidBridge:', err);
+      }
+      return;
+    }
 
     if (!this.isReady || !this.player || typeof this.player.loadVideoById !== 'function') {
       this.pendingTrack = track;
@@ -185,6 +249,15 @@ class PlayerController {
   }
 
   play() {
+    if (this.isNative()) {
+      try {
+        window.AndroidBridge.resume();
+      } catch (e) {
+        console.warn('[Player] AndroidBridge resume failed:', e);
+      }
+      return;
+    }
+
     if (this.player && typeof this.player.playVideo === 'function') {
       try {
         this.player.playVideo();
@@ -195,6 +268,15 @@ class PlayerController {
   }
 
   pause() {
+    if (this.isNative()) {
+      try {
+        window.AndroidBridge.pause();
+      } catch (e) {
+        console.warn('[Player] AndroidBridge pause failed:', e);
+      }
+      return;
+    }
+
     if (this.player && typeof this.player.pauseVideo === 'function') {
       try {
         this.player.pauseVideo();
@@ -205,6 +287,15 @@ class PlayerController {
   }
 
   togglePlay() {
+    if (this.isNative()) {
+      try {
+        window.AndroidBridge.togglePlay();
+      } catch (e) {
+        console.warn('[Player] AndroidBridge togglePlay failed:', e);
+      }
+      return;
+    }
+
     if (this.isPlaying) {
       this.pause();
     } else {
@@ -213,6 +304,16 @@ class PlayerController {
   }
 
   seekTo(seconds) {
+    if (this.isNative()) {
+      try {
+        this.currentTime = seconds;
+        window.AndroidBridge.seekTo(Math.round(seconds));
+      } catch (e) {
+        console.warn('[Player] AndroidBridge seekTo failed:', e);
+      }
+      return;
+    }
+
     if (this.player && typeof this.player.seekTo === 'function') {
       try {
         this.player.seekTo(seconds, true);

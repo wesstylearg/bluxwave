@@ -60,6 +60,22 @@ class CastManagerController {
       this.isSdkAvailable = true;
       this.initCastContext();
     }
+
+    // Native Android Cast handoff listener
+    window.addEventListener('blux:nativeCastChange', (e) => {
+      const data = e.detail;
+      if (data && data.connected) {
+        this.connectedDevice = {
+          id: 'native_cast_device',
+          name: data.deviceName || 'BLUXWAVE TV',
+          type: 'Google Cast'
+        };
+        this.setStatus(CastStatus.CONNECTED);
+      } else {
+        this.connectedDevice = null;
+        this.setStatus(CastStatus.DISCONNECTED);
+      }
+    });
   }
 
   initCastContext() {
@@ -192,6 +208,12 @@ class CastManagerController {
    * Disconnect mobile controller without stopping TV playback
    */
   disconnect() {
+    if (typeof window.AndroidBridge !== 'undefined' && typeof window.AndroidBridge.disconnectCast === 'function') {
+      try {
+        window.AndroidBridge.disconnectCast();
+      } catch (e) {}
+    }
+
     if (this.castSession) {
       try {
         // Disconnect session without stopping app on TV
