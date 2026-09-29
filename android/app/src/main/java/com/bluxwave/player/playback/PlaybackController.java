@@ -13,23 +13,15 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
-import androidx.media3.common.Timeline;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.cast.CastPlayer;
-import com.google.android.gms.cast.framework.CastContext;
-import com.google.android.gms.cast.framework.CastSession;
-import com.google.android.gms.cast.framework.SessionManager;
-import com.google.android.gms.cast.framework.SessionManagerListener;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 /**
- * Orchestrates playback switching seamlessly between local ExoPlayer and remote CastPlayer.
+ * Orchestrates native Media3 playback for BLUXWAVE Lite with background support,
+ * Audio Focus management, and metadata synchronization.
  */
 public class PlaybackController implements Player.Listener {
     private static final String TAG = "PlaybackController";
@@ -45,10 +37,7 @@ public class PlaybackController implements Player.Listener {
     private final Handler mainHandler;
     private final AudioStreamResolver streamResolver;
     private final ExoPlayer exoPlayer;
-    @Nullable private CastPlayer castPlayer;
-    @Nullable private SessionManager castSessionManager;
 
-    private Player activePlayer;
     private boolean isCastActive = false;
     private String connectedCastDeviceName = null;
 
@@ -63,7 +52,7 @@ public class PlaybackController implements Player.Listener {
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.streamResolver = new AudioStreamResolver();
 
-        // 1. Initialize local ExoPlayer
+        // 1. Initialize local ExoPlayer with proper audio attributes & focus
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .setUsage(C.USAGE_MEDIA)
@@ -76,101 +65,6 @@ public class PlaybackController implements Player.Listener {
                 .build();
 
         this.exoPlayer.addListener(this);
-        this.activePlayer = this.exoPlayer;
-
-        // 2. Initialize Google Cast integration if available
-        initCast();
-    }
-
-    private void initCast() {
-        mainHandler.post(() -> {
-            try {
-                // Verify Google Play Services is present before attempting to initialize Cast
-                GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-                int resultCode = apiAvailability.isGooglePlayServicesAvailable(context);
-                if (resultCode != ConnectionResult.SUCCESS) {
-                    Log.w(TAG, "Google Play Services not available for Cast (code " + resultCode + ")");
-                    return;
-                }
-
-                CastContext.getSharedInstance(context, Executors.newSingleThreadExecutor())
-                        .addOnSuccessListener(castContext -> {
-                            try {
-                                this.castSessionManager = castContext.getSessionManager();
-                                this.castPlayer = new CastPlayer(castContext);
-                                this.castPlayer.addListener(new Player.Listener() {
-                                    @Override
-                                    public void onPlaybackStateChanged(int playbackState) {
-                                        if (isCastActive) {
-                                            PlaybackController.this.onPlaybackStateChanged(playbackState);
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onIsPlayingChanged(boolean isPlaying) {
-                                        if (isCastActive) {
-                                            PlaybackController.this.onIsPlayingChanged(isPlaying);
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
-                                        if (isCastActive) {
-                                            PlaybackController.this.onMediaItemTransition(mediaItem, reason);
-                                        }
-                                    }
-                                });
-
-                                this.castSessionManager.addSessionManagerListener(new SessionManagerListener<CastSession>() {
-                                    @Override
-                                    public void onSessionStarted(@NonNull CastSession session, @NonNull String sessionId) {
-                                        connectedCastDeviceName = session.getCastDevice() != null ? session.getCastDevice().getFriendlyName() : "Google Cast";
-                                        switchToCast();
-                                    }
-
-                                    @Override
-                                    public void onSessionResumed(@NonNull CastSession session, boolean wasSuspended) {
-                                        connectedCastDeviceName = session.getCastDevice() != null ? session.getCastDevice().getFriendlyName() : "Google Cast";
-                                        switchToCast();
-                                    }
-
-                                    @Override
-                                    public void onSessionEnded(@NonNull CastSession session, int error) {
-                                        connectedCastDeviceName = null;
-                                        switchToLocal();
-                                    }
-
-                                    @Override
-                                    public void onSessionResumeFailed(@NonNull CastSession session, int error) {
-                                        connectedCastDeviceName = null;
-                                        switchToLocal();
-                                    }
-
-                                    @Override
-                                    public void onSessionStartFailed(@NonNull CastSession session, int error) {
-                                        connectedCastDeviceName = null;
-                                        switchToLocal();
-                                    }
-
-                                    @Override public void onSessionStarting(@NonNull CastSession session) {}
-                                    @Override public void onSessionEnding(@NonNull CastSession session) {}
-                                    @Override public void onSessionResuming(@NonNull CastSession session, @NonNull String sessionId) {}
-                                    @Override public void onSessionSuspended(@NonNull CastSession session, int reason) {}
-                                }, CastSession.class);
-
-                                Log.i(TAG, "CastContext & CastPlayer initialized asynchronously");
-                            } catch (Throwable t) {
-                                Log.w(TAG, "Failed setting up Cast session listener: " + t.getMessage());
-                            }
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.w(TAG, "CastContext async initialization failed: " + e.getMessage());
-                        });
-
-            } catch (Throwable t) {
-                Log.w(TAG, "CastContext not available on this device: " + t.getMessage());
-            }
-        });
     }
 
     public void setStateListener(@Nullable PlaybackStateListener listener) {
@@ -178,7 +72,7 @@ public class PlaybackController implements Player.Listener {
     }
 
     public Player getActivePlayer() {
-        return activePlayer;
+        return exoPlayer;
     }
 
     public ExoPlayer getExoPlayer() {
@@ -194,66 +88,19 @@ public class PlaybackController implements Player.Listener {
         return connectedCastDeviceName;
     }
 
-    /**
-     * Switch playback to Google Cast receiver.
-     */
-    public void switchToCast() {
-        if (castPlayer == null || isCastActive) return;
-
-        long currentPosition = activePlayer.getCurrentPosition();
-        int currentIndex = activePlayer.getCurrentMediaItemIndex();
-        boolean wasPlaying = activePlayer.isPlaying();
-
-        // Pause local playback
-        exoPlayer.pause();
-
-        isCastActive = true;
-        activePlayer = castPlayer;
-
-        // Transfer current playlist to CastPlayer
-        if (!currentPlaylist.isEmpty()) {
-            castPlayer.setMediaItems(currentPlaylist, currentIndex, currentPosition);
-            castPlayer.prepare();
-            if (wasPlaying) {
-                castPlayer.play();
-            }
+    public void setCastDevice(boolean connected, @Nullable String deviceName) {
+        this.isCastActive = connected;
+        this.connectedCastDeviceName = deviceName;
+        if (connected) {
+            exoPlayer.pause();
         }
-
         if (stateListener != null) {
-            stateListener.onCastSessionChanged(true, connectedCastDeviceName);
+            stateListener.onCastSessionChanged(connected, deviceName);
         }
-        Log.i(TAG, "Switched to CastPlayer on " + connectedCastDeviceName);
     }
 
-    /**
-     * Switch playback back to local ExoPlayer on phone.
-     */
     public void switchToLocal() {
-        if (!isCastActive) return;
-
-        long currentPosition = activePlayer.getCurrentPosition();
-        int currentIndex = activePlayer.getCurrentMediaItemIndex();
-        boolean wasPlaying = activePlayer.isPlaying();
-
-        if (castPlayer != null) {
-            castPlayer.pause();
-        }
-
-        isCastActive = false;
-        activePlayer = exoPlayer;
-
-        // Restore playlist and position to ExoPlayer
-        if (!currentPlaylist.isEmpty() && currentIndex < currentPlaylist.size()) {
-            exoPlayer.seekTo(currentIndex, currentPosition);
-            if (wasPlaying) {
-                exoPlayer.play();
-            }
-        }
-
-        if (stateListener != null) {
-            stateListener.onCastSessionChanged(false, null);
-        }
-        Log.i(TAG, "Switched back to local ExoPlayer");
+        setCastDevice(false, null);
     }
 
     /**
@@ -287,10 +134,10 @@ public class PlaybackController implements Player.Listener {
                     rawPlaylistTracks.clear();
                     rawPlaylistTracks.add(track);
 
-                    activePlayer.setMediaItem(mediaItem);
-                    activePlayer.prepare();
+                    exoPlayer.setMediaItem(mediaItem);
+                    exoPlayer.prepare();
                     if (autoPlay) {
-                        activePlayer.play();
+                        exoPlayer.play();
                     }
 
                     if (stateListener != null) {
@@ -325,20 +172,20 @@ public class PlaybackController implements Player.Listener {
     }
 
     public void play() {
-        activePlayer.play();
+        exoPlayer.play();
     }
 
     public void pause() {
-        activePlayer.pause();
+        exoPlayer.pause();
     }
 
     public void seekTo(long positionMs) {
-        activePlayer.seekTo(positionMs);
+        exoPlayer.seekTo(positionMs);
     }
 
     public void next() {
-        if (activePlayer.hasNextMediaItem()) {
-            activePlayer.seekToNextMediaItem();
+        if (exoPlayer.hasNextMediaItem()) {
+            exoPlayer.seekToNextMediaItem();
         } else if (currentMediaItemIndex + 1 < rawPlaylistTracks.size()) {
             currentMediaItemIndex++;
             playTrackJson(rawPlaylistTracks.get(currentMediaItemIndex), true);
@@ -346,10 +193,10 @@ public class PlaybackController implements Player.Listener {
     }
 
     public void previous() {
-        if (activePlayer.getCurrentPosition() > 3000) {
-            activePlayer.seekTo(0);
-        } else if (activePlayer.hasPreviousMediaItem()) {
-            activePlayer.seekToPreviousMediaItem();
+        if (exoPlayer.getCurrentPosition() > 3000) {
+            exoPlayer.seekTo(0);
+        } else if (exoPlayer.hasPreviousMediaItem()) {
+            exoPlayer.seekToPreviousMediaItem();
         } else if (currentMediaItemIndex - 1 >= 0) {
             currentMediaItemIndex--;
             playTrackJson(rawPlaylistTracks.get(currentMediaItemIndex), true);
@@ -358,9 +205,6 @@ public class PlaybackController implements Player.Listener {
 
     public void release() {
         exoPlayer.release();
-        if (castPlayer != null) {
-            castPlayer.release();
-        }
     }
 
     // --- Player.Listener implementation ---
@@ -368,14 +212,14 @@ public class PlaybackController implements Player.Listener {
     @Override
     public void onPlaybackStateChanged(int playbackState) {
         if (stateListener != null) {
-            stateListener.onPlaybackStateChanged(activePlayer.isPlaying(), playbackState);
+            stateListener.onPlaybackStateChanged(exoPlayer.isPlaying(), playbackState);
         }
     }
 
     @Override
     public void onIsPlayingChanged(boolean isPlaying) {
         if (stateListener != null) {
-            stateListener.onPlaybackStateChanged(isPlaying, activePlayer.getPlaybackState());
+            stateListener.onPlaybackStateChanged(isPlaying, exoPlayer.getPlaybackState());
         }
     }
 
@@ -389,7 +233,7 @@ public class PlaybackController implements Player.Listener {
     @Override
     public void onPositionDiscontinuity(@NonNull Player.PositionInfo oldPosition, @NonNull Player.PositionInfo newPosition, int reason) {
         if (stateListener != null) {
-            stateListener.onPositionDiscontinuity(newPosition.positionMs, activePlayer.getDuration());
+            stateListener.onPositionDiscontinuity(newPosition.positionMs, exoPlayer.getDuration());
         }
     }
 
