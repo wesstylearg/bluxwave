@@ -183,8 +183,8 @@ class CastManagerController {
       // Connect to local paired channel fallback (e.g. TV in same browser / network)
       this.connectedDevice = {
         id: 'local_tv',
-        name: 'BLUXWAVE TV (Living)',
-        type: 'Local Broadcast'
+        name: 'BLUXWAVE TV',
+        type: 'Dispositivo compatible'
       };
       this.setStatus(CastStatus.CONNECTED);
       this.requestState();
@@ -242,12 +242,9 @@ class CastManagerController {
   updateDiscoveredDevices() {
     const list = [];
     if (this.isSdkAvailable) {
-      // List simulated/available devices
-      list.push({ id: 'cast_tv_living', name: 'BLUXWAVE TV — Living', type: 'Google Cast' });
-      list.push({ id: 'cast_tv_dormitorio', name: 'BLUXWAVE TV — Dormitorio', type: 'Google Cast' });
-    } else {
-      list.push({ id: 'local_tv_living', name: 'BLUXWAVE TV — Pantalla Principal', type: 'Local Broadcast' });
+      list.push({ id: 'cast_device_available', name: 'Dispositivo Cast', type: 'Google Cast' });
     }
+    list.push({ id: 'local_tv', name: 'BLUXWAVE TV', type: 'Dispositivo compatible' });
     this.discoveredDevices = list;
     this.emit('devicesChange', this.discoveredDevices);
   }

@@ -4110,10 +4110,10 @@ class UIController {
       `;
     } else {
       devicesHtml = `
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Dispositivos BLUXWAVE TV detectados:</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Dispositivos disponibles:</div>
         ${devices.length === 0 ? `
           <div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px;">
-            Buscando BLUXWAVE TV en tu red Wi-Fi...
+            Buscando dispositivos disponibles en tu red Wi-Fi...
           </div>
         ` : devices.map(d => `
           <div class="cast-device-item" data-device-id="${d.id}" data-device-name="${this.escapeHTML(d.name)}" data-device-type="${d.type}">
@@ -4139,10 +4139,10 @@ class UIController {
           <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
           <polyline points="17 2 12 7 7 2"></polyline>
         </svg>
-        <h2 class="modal-title" style="margin: 0; font-size: 18px;">BLUXWAVE TV</h2>
+        <h2 class="modal-title" style="margin: 0; font-size: 18px;">Transmitir a dispositivo</h2>
       </div>
       <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.4;">
-        Tu celular actúa como control remoto mientras la música suena directamente en la TV con la máxima calidad.
+        Tu celular actúa como control remoto mientras la música suena directamente en la TV o dispositivo externo con máxima calidad.
       </p>
 
       <div style="margin-bottom: 20px;">

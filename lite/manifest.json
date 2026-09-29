@@ -1,0 +1,19 @@
+{
+  "name": "BluxWave Lite",
+  "short_name": "BluxWave",
+  "description": "Ultra-lightweight music player with Cast and background audio",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0E0E12",
+  "theme_color": "#0E0E12",
+  "icons": [
+    {
+      "src": "./assets/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
