@@ -20,10 +20,13 @@ import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManager;
 import com.google.android.gms.cast.framework.SessionManagerListener;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 /**
  * Orchestrates playback switching seamlessly between local ExoPlayer and remote CastPlayer.
@@ -80,73 +83,94 @@ public class PlaybackController implements Player.Listener {
     }
 
     private void initCast() {
-        try {
-            CastContext castContext = CastContext.getSharedInstance(context);
-            this.castSessionManager = castContext.getSessionManager();
-            this.castPlayer = new CastPlayer(castContext);
-            this.castPlayer.addListener(new Player.Listener() {
-                @Override
-                public void onPlaybackStateChanged(int playbackState) {
-                    if (isCastActive) {
-                        PlaybackController.this.onPlaybackStateChanged(playbackState);
-                    }
+        mainHandler.post(() -> {
+            try {
+                // Verify Google Play Services is present before attempting to initialize Cast
+                GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+                int resultCode = apiAvailability.isGooglePlayServicesAvailable(context);
+                if (resultCode != ConnectionResult.SUCCESS) {
+                    Log.w(TAG, "Google Play Services not available for Cast (code " + resultCode + ")");
+                    return;
                 }
 
-                @Override
-                public void onIsPlayingChanged(boolean isPlaying) {
-                    if (isCastActive) {
-                        PlaybackController.this.onIsPlayingChanged(isPlaying);
-                    }
-                }
+                CastContext.getSharedInstance(context, Executors.newSingleThreadExecutor())
+                        .addOnSuccessListener(castContext -> {
+                            try {
+                                this.castSessionManager = castContext.getSessionManager();
+                                this.castPlayer = new CastPlayer(castContext);
+                                this.castPlayer.addListener(new Player.Listener() {
+                                    @Override
+                                    public void onPlaybackStateChanged(int playbackState) {
+                                        if (isCastActive) {
+                                            PlaybackController.this.onPlaybackStateChanged(playbackState);
+                                        }
+                                    }
 
-                @Override
-                public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
-                    if (isCastActive) {
-                        PlaybackController.this.onMediaItemTransition(mediaItem, reason);
-                    }
-                }
-            });
+                                    @Override
+                                    public void onIsPlayingChanged(boolean isPlaying) {
+                                        if (isCastActive) {
+                                            PlaybackController.this.onIsPlayingChanged(isPlaying);
+                                        }
+                                    }
 
-            this.castSessionManager.addSessionManagerListener(new SessionManagerListener<CastSession>() {
-                @Override
-                public void onSessionStarted(@NonNull CastSession session, @NonNull String sessionId) {
-                    connectedCastDeviceName = session.getCastDevice() != null ? session.getCastDevice().getFriendlyName() : "Google Cast";
-                    switchToCast();
-                }
+                                    @Override
+                                    public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
+                                        if (isCastActive) {
+                                            PlaybackController.this.onMediaItemTransition(mediaItem, reason);
+                                        }
+                                    }
+                                });
 
-                @Override
-                public void onSessionResumed(@NonNull CastSession session, boolean wasSuspended) {
-                    connectedCastDeviceName = session.getCastDevice() != null ? session.getCastDevice().getFriendlyName() : "Google Cast";
-                    switchToCast();
-                }
+                                this.castSessionManager.addSessionManagerListener(new SessionManagerListener<CastSession>() {
+                                    @Override
+                                    public void onSessionStarted(@NonNull CastSession session, @NonNull String sessionId) {
+                                        connectedCastDeviceName = session.getCastDevice() != null ? session.getCastDevice().getFriendlyName() : "Google Cast";
+                                        switchToCast();
+                                    }
 
-                @Override
-                public void onSessionEnded(@NonNull CastSession session, int error) {
-                    connectedCastDeviceName = null;
-                    switchToLocal();
-                }
+                                    @Override
+                                    public void onSessionResumed(@NonNull CastSession session, boolean wasSuspended) {
+                                        connectedCastDeviceName = session.getCastDevice() != null ? session.getCastDevice().getFriendlyName() : "Google Cast";
+                                        switchToCast();
+                                    }
 
-                @Override
-                public void onSessionResumeFailed(@NonNull CastSession session, int error) {
-                    connectedCastDeviceName = null;
-                    switchToLocal();
-                }
+                                    @Override
+                                    public void onSessionEnded(@NonNull CastSession session, int error) {
+                                        connectedCastDeviceName = null;
+                                        switchToLocal();
+                                    }
 
-                @Override
-                public void onSessionStartFailed(@NonNull CastSession session, int error) {
-                    connectedCastDeviceName = null;
-                    switchToLocal();
-                }
+                                    @Override
+                                    public void onSessionResumeFailed(@NonNull CastSession session, int error) {
+                                        connectedCastDeviceName = null;
+                                        switchToLocal();
+                                    }
 
-                @Override public void onSessionStarting(@NonNull CastSession session) {}
-                @Override public void onSessionEnding(@NonNull CastSession session) {}
-                @Override public void onSessionResuming(@NonNull CastSession session, @NonNull String sessionId) {}
-                @Override public void onSessionSuspended(@NonNull CastSession session, int reason) {}
-            }, CastSession.class);
+                                    @Override
+                                    public void onSessionStartFailed(@NonNull CastSession session, int error) {
+                                        connectedCastDeviceName = null;
+                                        switchToLocal();
+                                    }
 
-        } catch (Exception e) {
-            Log.w(TAG, "CastContext not available on this device: " + e.getMessage());
-        }
+                                    @Override public void onSessionStarting(@NonNull CastSession session) {}
+                                    @Override public void onSessionEnding(@NonNull CastSession session) {}
+                                    @Override public void onSessionResuming(@NonNull CastSession session, @NonNull String sessionId) {}
+                                    @Override public void onSessionSuspended(@NonNull CastSession session, int reason) {}
+                                }, CastSession.class);
+
+                                Log.i(TAG, "CastContext & CastPlayer initialized asynchronously");
+                            } catch (Throwable t) {
+                                Log.w(TAG, "Failed setting up Cast session listener: " + t.getMessage());
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.w(TAG, "CastContext async initialization failed: " + e.getMessage());
+                        });
+
+            } catch (Throwable t) {
+                Log.w(TAG, "CastContext not available on this device: " + t.getMessage());
+            }
+        });
     }
 
     public void setStateListener(@Nullable PlaybackStateListener listener) {

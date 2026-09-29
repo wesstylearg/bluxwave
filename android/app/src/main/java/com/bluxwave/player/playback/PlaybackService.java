@@ -144,45 +144,49 @@ public class PlaybackService extends MediaSessionService {
     }
 
     private void updateForegroundNotification() {
-        Player player = playbackController.getActivePlayer();
-        if (player == null) return;
+        try {
+            Player player = playbackController.getActivePlayer();
+            if (player == null) return;
 
-        MediaItem currentItem = player.getCurrentMediaItem();
-        String title = "BLUXWAVE Lite";
-        String artist = "Música";
-        if (currentItem != null && currentItem.mediaMetadata != null) {
-            if (currentItem.mediaMetadata.title != null) {
-                title = currentItem.mediaMetadata.title.toString();
+            MediaItem currentItem = player.getCurrentMediaItem();
+            String title = "BLUXWAVE Lite";
+            String artist = "Música";
+            if (currentItem != null && currentItem.mediaMetadata != null) {
+                if (currentItem.mediaMetadata.title != null) {
+                    title = currentItem.mediaMetadata.title.toString();
+                }
+                if (currentItem.mediaMetadata.artist != null) {
+                    artist = currentItem.mediaMetadata.artist.toString();
+                }
             }
-            if (currentItem.mediaMetadata.artist != null) {
-                artist = currentItem.mediaMetadata.artist.toString();
-            }
-        }
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(title)
-                .setContentText(artist)
-                .setSubText(playbackController.isCastActive() ? "Transmitiendo a " + playbackController.getConnectedCastDeviceName() : "BLUXWAVE")
-                .setOngoing(player.isPlaying())
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle(title)
+                    .setContentText(artist)
+                    .setSubText(playbackController.isCastActive() ? "Transmitiendo a " + playbackController.getConnectedCastDeviceName() : "BLUXWAVE")
+                    .setOngoing(player.isPlaying())
+                    .setPriority(NotificationCompat.PRIORITY_LOW)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
 
-        Notification notification = builder.build();
+            Notification notification = builder.build();
 
-        if (player.isPlaying()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+            if (player.isPlaying()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+                } else {
+                    startForeground(NOTIFICATION_ID, notification);
+                }
             } else {
-                startForeground(NOTIFICATION_ID, notification);
+                // Keep notification but allow dismissal if paused
+                stopForeground(false);
+                NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                if (nm != null) {
+                    nm.notify(NOTIFICATION_ID, notification);
+                }
             }
-        } else {
-            // Keep notification but allow dismissal if paused
-            stopForeground(false);
-            NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            if (nm != null) {
-                nm.notify(NOTIFICATION_ID, notification);
-            }
+        } catch (Throwable t) {
+            Log.w(TAG, "updateForegroundNotification caught: " + t.getMessage());
         }
     }
 

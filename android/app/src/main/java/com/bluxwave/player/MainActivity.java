@@ -66,18 +66,23 @@ public class MainActivity extends AppCompatActivity {
         // Dark navigation & status bar
         configureSystemBars();
 
-        // 1. Start foreground PlaybackService so it lives independently of this Activity
+        // 1. Start PlaybackService normally (Media3 will promote to foreground when playback begins)
         Intent serviceIntent = new Intent(this, PlaybackService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent);
-        } else {
+        try {
             startService(serviceIntent);
+        } catch (Throwable t) {
+            android.util.Log.w(TAG, "startService caught: " + t.getMessage());
         }
-        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        try {
+            bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        } catch (Throwable t) {
+            android.util.Log.w(TAG, "bindService caught: " + t.getMessage());
+        }
 
         // 2. Setup WebView
         webView = new WebView(this);
         webView.setBackgroundColor(Color.parseColor("#0E0E12"));
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
@@ -88,6 +93,9 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowContentAccess(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
 
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
@@ -103,10 +111,16 @@ public class MainActivity extends AppCompatActivity {
                     view.evaluateJavascript("window.dispatchEvent(new CustomEvent('blux:nativeReady'));", null);
                 }
             }
+
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                super.onReceivedError(view, errorCode, description, failingUrl);
+                android.util.Log.e(TAG, "WebView error: " + description + " at " + failingUrl);
+            }
         });
 
-        // Load bundled BLUXWAVE Lite web application
-        webView.loadUrl("file:///android_asset/dist/lite/index.html");
+        // Load bundled BLUXWAVE Lite web application from assets root
+        webView.loadUrl("file:///android_asset/index.html");
     }
 
     private void configureSystemBars() {

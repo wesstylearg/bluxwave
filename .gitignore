@@ -6,3 +6,4 @@ src-tauri/target/
 portable/
 .DS_Store
 Thumbs.db
+*.apk
